@@ -315,6 +315,7 @@ STR_SETTINGS_ROCKER = Volymknappar
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Tryck: volym, håll: spår
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Tryck: spår, håll: volym
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Tryck: volym, håll: spola
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Tryck: spar, 2x: forra, hall: volym
 STR_SETTINGS_MENU_KEY = Menyknapp
 STR_SETTINGS_NEXT_TRACK = Nästa spår
 STR_SETTINGS_COVER_ORDER = Cover Flow-ordning

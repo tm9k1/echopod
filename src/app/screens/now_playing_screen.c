@@ -197,8 +197,11 @@ NowPlayingControls now_playing_controls_of(const uint8_t *options)
 static NowPlayingCommand rocker_command(KeyGesture gesture, NowPlayingControls controls, bool up)
 {
     NowPlayingCommand volume = up ? NOW_PLAYING_VOLUME_UP : NOW_PLAYING_VOLUME_DOWN;
-    NowPlayingCommand skip = up ? NOW_PLAYING_PREVIOUS : NOW_PLAYING_NEXT;
+    NowPlayingCommand skip = up ? NOW_PLAYING_NEXT : NOW_PLAYING_PREVIOUS;
     bool held = gesture != KEY_GESTURE_PRESS;
+    if (controls.rocker == ROCKER_NEXT_PREV_VOLUME) {
+        return held ? volume : NOW_PLAYING_NEXT;
+    }
     if (controls.rocker == ROCKER_SKIP_VOLUME) {
         return held ? volume : skip;
     }
@@ -485,7 +488,27 @@ static ScreenAction handle_key(void *context, KeyEvent event, uint32_t now_ms)
     controls.volume_shown = now_playing->feedback == NOW_PLAYING_FEEDBACK_VOLUME &&
                             now_ms - now_playing->feedback_started_ms < NOW_PLAYING_VOLUME_HOLD_MS;
     now_playing->now_ms = now_ms;
-    NowPlayingCommand command = now_playing_command_with(event, now_playing->scrubbing, controls);
+    NowPlayingCommand command;
+    if (controls.rocker == ROCKER_NEXT_PREV_VOLUME && !now_playing->scrubbing &&
+        (event.key == KEY_VOLUME_UP || event.key == KEY_VOLUME_DOWN)) {
+        if (event.gesture != KEY_GESTURE_PRESS) {
+            now_playing->pending_rocker_tap_ms = 0;
+            command = event.key == KEY_VOLUME_UP ? NOW_PLAYING_VOLUME_UP : NOW_PLAYING_VOLUME_DOWN;
+        } else if (now_playing->pending_rocker_tap_ms != 0 &&
+                   now_ms - now_playing->pending_rocker_tap_ms <= 300) {
+            now_playing->pending_rocker_tap_ms = 0;
+            command = NOW_PLAYING_PREVIOUS;
+        } else {
+            now_playing->pending_rocker_tap_ms = now_ms != 0 ? now_ms : 1;
+            command = NOW_PLAYING_NONE;
+        }
+    } else {
+        if (event.gesture != KEY_GESTURE_PRESS ||
+            (event.key != KEY_VOLUME_UP && event.key != KEY_VOLUME_DOWN)) {
+            now_playing->pending_rocker_tap_ms = 0;
+        }
+        command = now_playing_command_with(event, now_playing->scrubbing, controls);
+    }
     ScreenAction action = run_command(now_playing, command);
     refresh(now_playing, now_ms);
     NowPlayingFeedback feedback = now_playing_feedback_for(command, now_playing->status.state);
@@ -501,6 +524,7 @@ static void enter(void *context, uint32_t now_ms)
     NowPlayingScreen *now_playing = context;
     now_playing->has_text = false;
     now_playing->scrubbing = false;
+    now_playing->pending_rocker_tap_ms = 0;
     now_playing->feedback = NOW_PLAYING_FEEDBACK_NONE;
     refresh(now_playing, now_ms);
 }
@@ -539,6 +563,18 @@ const char *now_playing_lyric(const NowPlayingScreen *now_playing)
 static void update(void *context, uint32_t now_ms)
 {
     NowPlayingScreen *now_playing = context;
+    if (now_playing->pending_rocker_tap_ms != 0 &&
+        now_ms - now_playing->pending_rocker_tap_ms > 300) {
+        now_playing->pending_rocker_tap_ms = 0;
+        run_command(now_playing, NOW_PLAYING_NEXT);
+        refresh(now_playing, now_ms);
+        NowPlayingFeedback feedback =
+            now_playing_feedback_for(NOW_PLAYING_NEXT, now_playing->status.state);
+        if (feedback != NOW_PLAYING_FEEDBACK_NONE) {
+            now_playing->feedback = feedback;
+            now_playing->feedback_started_ms = now_ms;
+        }
+    }
     refresh(now_playing, now_ms);
     follow_lyrics(now_playing, now_ms);
     if (now_playing->config.covers != NULL && now_playing->status.has_track) {

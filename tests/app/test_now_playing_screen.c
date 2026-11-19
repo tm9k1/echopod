@@ -223,6 +223,17 @@ static void tap_skip_hold_volume_swaps_the_rocker_gestures(void)
     CHECK_EQUAL(NOW_PLAYING_VOLUME_DOWN, controlled(KEY_VOLUME_DOWN, KEY_GESTURE_REPEAT, controls));
 }
 
+static void tap_next_dbl_prev_hold_volume_controls(void)
+{
+    NowPlayingControls controls = {.rocker = ROCKER_NEXT_PREV_VOLUME};
+    CHECK_EQUAL(NOW_PLAYING_NEXT, controlled(KEY_VOLUME_UP, KEY_GESTURE_PRESS, controls));
+    CHECK_EQUAL(NOW_PLAYING_NEXT, controlled(KEY_VOLUME_DOWN, KEY_GESTURE_PRESS, controls));
+    CHECK_EQUAL(NOW_PLAYING_VOLUME_UP, controlled(KEY_VOLUME_UP, KEY_GESTURE_LONG_PRESS, controls));
+    CHECK_EQUAL(NOW_PLAYING_VOLUME_DOWN, controlled(KEY_VOLUME_DOWN, KEY_GESTURE_LONG_PRESS, controls));
+    CHECK_EQUAL(NOW_PLAYING_VOLUME_UP, controlled(KEY_VOLUME_UP, KEY_GESTURE_REPEAT, controls));
+    CHECK_EQUAL(NOW_PLAYING_VOLUME_DOWN, controlled(KEY_VOLUME_DOWN, KEY_GESTURE_REPEAT, controls));
+}
+
 static void hold_to_seek_moves_within_the_track(void)
 {
     NowPlayingControls controls = {.rocker = ROCKER_VOLUME_SEEK};
@@ -267,6 +278,7 @@ int main(void)
     static const TestCase cases[] = {
         TEST_CASE(the_detail_line_shows_the_chapter_of_a_book_with_chapters),
         TEST_CASE(tap_skip_hold_volume_swaps_the_rocker_gestures),
+        TEST_CASE(tap_next_dbl_prev_hold_volume_controls),
         TEST_CASE(hold_to_seek_moves_within_the_track),
         TEST_CASE(holding_while_the_volume_shows_keeps_changing_it),
         TEST_CASE(the_menu_button_can_skip_to_the_next_track),

@@ -167,6 +167,7 @@ typedef enum RockerMode {
     ROCKER_VOLUME_SKIP,
     ROCKER_SKIP_VOLUME,
     ROCKER_VOLUME_SEEK,
+    ROCKER_NEXT_PREV_VOLUME,
     ROCKER_MODE_COUNT
 } RockerMode;
 

@@ -316,6 +316,7 @@ STR_SETTINGS_ROCKER = Volumeknoppen
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Tik: volume, houd: nummer
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Tik: nummer, houd: volume
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Tik: volume, houd: spoelen
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Tik: nummer, 2x: vorig, houd: volume
 STR_SETTINGS_MENU_KEY = Menuknop
 STR_SETTINGS_NEXT_TRACK = Volgend nummer
 STR_SETTINGS_COVER_ORDER = Cover Flow-volgorde

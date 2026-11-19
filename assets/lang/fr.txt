@@ -315,6 +315,7 @@ STR_SETTINGS_ROCKER = Touches volume
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Court: volume, long: piste
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Court: piste, long: volume
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Court: volume, long: défiler
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Court: piste, 2x: prec., long: volume
 STR_SETTINGS_MENU_KEY = Touche menu
 STR_SETTINGS_NEXT_TRACK = Piste suivante
 STR_SETTINGS_COVER_ORDER = Ordre Cover Flow

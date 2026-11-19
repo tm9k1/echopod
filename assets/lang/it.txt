@@ -316,6 +316,7 @@ STR_SETTINGS_ROCKER = Tasti volume
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Breve: volume, lungo: brano
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Breve: brano, lungo: volume
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Breve: volume, lungo: ricerca
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Breve: brano, 2x: prec., lungo: volume
 STR_SETTINGS_MENU_KEY = Tasto menu
 STR_SETTINGS_NEXT_TRACK = Brano successivo
 STR_SETTINGS_COVER_ORDER = Ordine Cover Flow

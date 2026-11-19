@@ -316,6 +316,7 @@ STR_SETTINGS_ROCKER = Botões de volume
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Curto: volume, longo: faixa
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Curto: faixa, longo: volume
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Curto: volume, longo: avançar
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Curto: faixa, 2x: ant., longo: volume
 STR_SETTINGS_MENU_KEY = Botão de menu
 STR_SETTINGS_NEXT_TRACK = Faixa seguinte
 STR_SETTINGS_COVER_ORDER = Ordem do Cover Flow

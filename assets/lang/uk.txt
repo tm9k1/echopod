@@ -315,6 +315,7 @@ STR_SETTINGS_ROCKER = Кнопки гучності
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Коротко: гучн., довго: трек
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Коротко: трек, довго: гучн.
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Коротко: гучн., довго: перемотка
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Коротко: наст., 2x: попер., довго: гучн.
 STR_SETTINGS_MENU_KEY = Кнопка меню
 STR_SETTINGS_NEXT_TRACK = Наступний трек
 STR_SETTINGS_COVER_ORDER = Порядок Cover Flow

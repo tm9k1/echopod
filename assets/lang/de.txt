@@ -315,6 +315,7 @@ STR_SETTINGS_ROCKER = Lautstärketasten
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Kurz: Lautst., lang: Titel
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Kurz: Titel, lang: Lautst.
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Kurz: Lautst., lang: Spulen
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Kurz: Titel, 2x: Zurueck, lang: Lautst.
 STR_SETTINGS_MENU_KEY = Menütaste
 STR_SETTINGS_NEXT_TRACK = Nächster Titel
 STR_SETTINGS_COVER_ORDER = Cover Flow sortieren

@@ -116,6 +116,7 @@ typedef struct AppState {
     KeyTracker keys;
     bool rocker_swapped[KEY_COUNT];
     uint32_t dac_volume_until_ms;
+    uint32_t pending_rocker_tap_ms;
     Theme theme;
     Theme stage_theme;
     int shown_theme;
@@ -299,6 +300,7 @@ static void set_display(bool on)
     app.display_on = on;
     app.light_after_frame = on;
     app.frame_stable = false;
+    app.pending_rocker_tap_ms = 0;
     if (on) {
         frame_diff_forget(&app.frame_diff);
     } else {
@@ -517,6 +519,22 @@ static void show_now_playing(uint32_t now_ms)
 static void run_background(KeyEvent event)
 {
     NowPlayingControls controls = now_playing_controls_of(app.settings.settings.options);
+    if (controls.rocker == ROCKER_NEXT_PREV_VOLUME &&
+        (event.key == KEY_VOLUME_UP || event.key == KEY_VOLUME_DOWN)) {
+        if (event.gesture != KEY_GESTURE_PRESS) {
+            app.pending_rocker_tap_ms = 0;
+            player_change_volume(&app.player, event.key == KEY_VOLUME_UP ? 1 : -1);
+            return;
+        }
+        if (app.pending_rocker_tap_ms != 0 &&
+            app.now_ms - app.pending_rocker_tap_ms <= 300) {
+            app.pending_rocker_tap_ms = 0;
+            player_skip(&app.player, -1);
+            return;
+        }
+        app.pending_rocker_tap_ms = app.now_ms != 0 ? app.now_ms : 1;
+        return;
+    }
     NowPlayingCommand command = now_playing_command_with(event, false, controls);
     switch (command) {
     case NOW_PLAYING_TOGGLE_PAUSE:
@@ -1365,6 +1383,11 @@ void app_step(void)
         follow_history(&status, now_ms);
         explain_refusals(now_ms);
         update_power(now_ms);
+        if (!app.display_on && app.pending_rocker_tap_ms != 0 &&
+            now_ms - app.pending_rocker_tap_ms > 300) {
+            app.pending_rocker_tap_ms = 0;
+            player_skip(&app.player, 1);
+        }
     }
     if (app.powered_off) {
         return;

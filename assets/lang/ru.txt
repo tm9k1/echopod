@@ -315,6 +315,7 @@ STR_SETTINGS_ROCKER = Кнопки громкости
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Нажать: громк., зажать: трек
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Нажать: трек, зажать: громк.
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Нажать: громк., зажать: перемотка
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Нажать: след., 2x: пред., зажать: громк.
 STR_SETTINGS_MENU_KEY = Кнопка меню
 STR_SETTINGS_NEXT_TRACK = Следующий трек
 STR_SETTINGS_COVER_ORDER = Порядок Cover Flow

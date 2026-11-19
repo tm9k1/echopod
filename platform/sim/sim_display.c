@@ -59,6 +59,9 @@ typedef struct SimDisplay {
     SDL_Texture *texture;
     SDL_Texture *casing_texture;
     int rotation;
+    HalDisplayRotation hal_rotation;
+    float screen_center_x;
+    float screen_center_y;
     bool powered;
     uint8_t brightness;
     int win_width;
@@ -222,24 +225,25 @@ static void recalculate_layout(void)
     if (rot == 0) {
         scx = cx + dx0;
         scy = cy + dy0;
-        display.screen_draw_rect = (SDL_Rect){(int)(scx - (float)sw * 0.5f), (int)(scy - (float)sh * 0.5f), sw, sh};
-        display.hit_screen_rect = display.screen_draw_rect;
     } else if (rot == 1) {
         scx = cx - dy0;
         scy = cy + dx0;
-        display.screen_draw_rect = (SDL_Rect){(int)(scx - (float)sw * 0.5f), (int)(scy - (float)sh * 0.5f), sw, sh};
-        display.hit_screen_rect = (SDL_Rect){(int)(scx - (float)sh * 0.5f), (int)(scy - (float)sw * 0.5f), sh, sw};
     } else if (rot == 2) {
         scx = cx - dx0;
         scy = cy - dy0;
-        display.screen_draw_rect = (SDL_Rect){(int)(scx - (float)sw * 0.5f), (int)(scy - (float)sh * 0.5f), sw, sh};
-        display.hit_screen_rect = display.screen_draw_rect;
     } else {
         scx = cx + dy0;
         scy = cy - dx0;
-        display.screen_draw_rect = (SDL_Rect){(int)(scx - (float)sw * 0.5f), (int)(scy - (float)sh * 0.5f), sw, sh};
-        display.hit_screen_rect = (SDL_Rect){(int)(scx - (float)sh * 0.5f), (int)(scy - (float)sw * 0.5f), sh, sw};
     }
+    display.screen_center_x = scx;
+    display.screen_center_y = scy;
+
+    if (portrait) {
+        display.hit_screen_rect = (SDL_Rect){(int)(scx - (float)sh * 0.5f), (int)(scy - (float)sw * 0.5f), sh, sw};
+    } else {
+        display.hit_screen_rect = (SDL_Rect){(int)(scx - (float)sw * 0.5f), (int)(scy - (float)sh * 0.5f), sw, sh};
+    }
+    display.screen_draw_rect = display.hit_screen_rect;
 
     int ux = case_x + cur_cw + 16;
     int uw = right_col_w;
@@ -506,17 +510,25 @@ uint32_t hal_display_panel_id(void)
 
 void hal_display_set_rotation(HalDisplayRotation rotation)
 {
+    display.hal_rotation = rotation;
+    int target_rot = 0;
+    if (rotation == HAL_DISPLAY_PORTRAIT) {
+        target_rot = 1;
+    } else if (rotation == HAL_DISPLAY_PORTRAIT_FLIPPED) {
+        target_rot = 3;
+    }
+    display.rotation = target_rot;
     bool landscape = rotation == HAL_DISPLAY_LANDSCAPE;
     int width = landscape ? HAL_DISPLAY_LONG_SIDE : HAL_DISPLAY_SHORT_SIDE;
     int height = landscape ? HAL_DISPLAY_SHORT_SIDE : HAL_DISPLAY_LONG_SIDE;
-    if (width == display.width && height == display.height) {
-        return;
-    }
     display.width = width;
     display.height = height;
     SDL_memset(display.panel, 0, sizeof display.panel);
+    recalculate_layout();
     if (display.window != NULL) {
+        SDL_SetWindowSize(display.window, display.win_width, display.win_height);
         make_texture();
+        show_panel();
     }
 }
 
@@ -707,10 +719,27 @@ static void show_panel(void)
 
     if (display.powered) {
         if (display.texture != NULL) {
+            int base_rot = 0;
+            if (display.hal_rotation == HAL_DISPLAY_PORTRAIT) {
+                base_rot = 1;
+            } else if (display.hal_rotation == HAL_DISPLAY_PORTRAIT_FLIPPED) {
+                base_rot = 3;
+            }
+            int rel_rot = (display.rotation - base_rot + 4) % 4;
+            double tex_angle = (double)rel_rot * 90.0;
+            int s = display.scale > 0 ? display.scale : 2;
+            int tex_w = display.width * s;
+            int tex_h = display.height * s;
+            SDL_Rect tex_rect = {
+                (int)(display.screen_center_x - (float)tex_w * 0.5f),
+                (int)(display.screen_center_y - (float)tex_h * 0.5f),
+                tex_w,
+                tex_h
+            };
             Uint8 intensity = brightness_intensity(display.brightness);
             SDL_SetTextureColorMod(display.texture, intensity, intensity, intensity);
             SDL_RenderCopyEx(display.renderer, display.texture, NULL,
-                             &display.screen_draw_rect, angle, NULL, SDL_FLIP_NONE);
+                             &tex_rect, tex_angle, NULL, SDL_FLIP_NONE);
         }
     } else {
         SDL_SetRenderDrawColor(display.renderer, 0, 0, 0, 255);

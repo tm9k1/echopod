@@ -350,6 +350,7 @@ STR_SETTINGS_ROCKER = Przyciski głośności
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Krótko: głośn., długo: następny
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Krótko: następny, długo: głośn.
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Krótko: głośn., długo: przewijanie
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Krotko: nast., 2x: poprz., dlugo: glosn.
 STR_SETTINGS_MENU_KEY = Przycisk menu
 STR_SETTINGS_NEXT_TRACK = Następny utwór
 STR_SETTINGS_COVER_ORDER = Kolejność Cover Flow

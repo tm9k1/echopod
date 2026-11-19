@@ -88,6 +88,7 @@ typedef struct NowPlayingScreen {
     uint32_t now_ms;
     NowPlayingFeedback feedback;
     uint32_t feedback_started_ms;
+    uint32_t pending_rocker_tap_ms;
     char title[NOW_PLAYING_TEXT_CAPACITY];
     char artist[NOW_PLAYING_TEXT_CAPACITY];
     char album[NOW_PLAYING_TEXT_CAPACITY];

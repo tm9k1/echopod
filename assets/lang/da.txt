@@ -315,6 +315,7 @@ STR_SETTINGS_ROCKER = Lydstyrkeknapper
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Tryk: lydstyrke, hold: spor
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Tryk: spor, hold: lydstyrke
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Tryk: lydstyrke, hold: spol
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Tryk: spor, 2x: forrige, hold: lydstyrke
 STR_SETTINGS_MENU_KEY = Menuknap
 STR_SETTINGS_NEXT_TRACK = Næste nummer
 STR_SETTINGS_COVER_ORDER = Cover Flow-rækkefølge

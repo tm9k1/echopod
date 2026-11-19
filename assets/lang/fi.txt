@@ -315,6 +315,7 @@ STR_SETTINGS_ROCKER = Volyyminapit
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Paina: volyymi, pidä: biisi
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Paina: biisi, pidä: volyymi
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Paina: volyymi, pidä: kelaus
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Paina: biisi, 2x: edell., pida: volyymi
 STR_SETTINGS_MENU_KEY = Valikkonäppäin
 STR_SETTINGS_NEXT_TRACK = Seuraava biisi
 STR_SETTINGS_COVER_ORDER = Cover Flow -järjestys

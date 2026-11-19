@@ -59,7 +59,8 @@ static const StringId SHOWN_OPTIONS[2] = {STR_ON, STR_OFF};
 static const StringId SWITCH_OPTIONS[2] = {STR_OFF, STR_ON};
 static const StringId ROCKER_OPTIONS[ROCKER_MODE_COUNT] = {STR_SETTINGS_ROCKER_VOLUME_SKIP,
                                                            STR_SETTINGS_ROCKER_SKIP_VOLUME,
-                                                           STR_SETTINGS_ROCKER_VOLUME_SEEK};
+                                                           STR_SETTINGS_ROCKER_VOLUME_SEEK,
+                                                           STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME};
 static const StringId MENU_KEY_OPTIONS[2] = {STR_MENU_UP_NEXT, STR_SETTINGS_NEXT_TRACK};
 static const StringId ACCENT_OPTIONS[ACCENT_COUNT] = {
     STR_SETTINGS_COLOR_BLUE,  STR_SETTINGS_COLOR_RED,     STR_SETTINGS_COLOR_ORANGE,

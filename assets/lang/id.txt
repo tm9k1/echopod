@@ -152,6 +152,7 @@ STR_SETTINGS_ROCKER = Tombol volume
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Ketuk: volume, tahan: lewati
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Ketuk: lewati, tahan: volume
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Ketuk: volume, tahan: geser
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Ketuk: lewati, 2x: seb., tahan: volume
 STR_SETTINGS_MENU_KEY = Tombol menu
 STR_SETTINGS_NEXT_TRACK = Lagu berikutnya
 STR_SETTINGS_COVER_ORDER = Urutan Cover Flow

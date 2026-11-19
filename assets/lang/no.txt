@@ -315,6 +315,7 @@ STR_SETTINGS_ROCKER = Volumknapper
 STR_SETTINGS_ROCKER_VOLUME_SKIP = Trykk: volum, hold: spor
 STR_SETTINGS_ROCKER_SKIP_VOLUME = Trykk: spor, hold: volum
 STR_SETTINGS_ROCKER_VOLUME_SEEK = Trykk: volum, hold: spol
+STR_SETTINGS_ROCKER_NEXT_PREV_VOLUME = Trykk: spor, 2x: forrige, hold: volum
 STR_SETTINGS_MENU_KEY = Menyknapp
 STR_SETTINGS_NEXT_TRACK = Neste spor
 STR_SETTINGS_COVER_ORDER = Cover Flow-rekkefølge
