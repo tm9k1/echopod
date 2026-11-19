@@ -50,7 +50,7 @@ const char *sim_storage_internal_directory(void)
 
 bool hal_storage_card_ready(void)
 {
-    return storage.card_directory != NULL;
+    return storage.card_directory != NULL || storage.internal_directory != NULL;
 }
 
 bool sim_storage_host_path(const char *path, char *buffer, size_t capacity)

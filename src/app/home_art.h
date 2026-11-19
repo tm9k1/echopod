@@ -10,7 +10,7 @@
 #include "ui/theme.h"
 
 enum {
-    HOME_ART_WIDTH = 144,
+    HOME_ART_WIDTH = 148,
     HOME_ART_MIN_HEIGHT = 128,
     HOME_ART_CYCLE_MS = 5000,
     HOME_ART_ALBUMS_PER_UPDATE = 4

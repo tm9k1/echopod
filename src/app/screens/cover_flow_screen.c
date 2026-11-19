@@ -736,12 +736,12 @@ static void draw_cover(const CoverFlowScreen *flow, Canvas *canvas, int position
     Image image;
     if (cover_image(flow, position, &image)) {
         uint32_t started_us = hal_clock_microseconds();
-        image_draw_quad_lit(canvas, image, quad, light);
+        image_draw_quad_smooth_lit(canvas, image, quad, light);
         uint32_t reflection_us = hal_clock_microseconds();
         draw_profile_add(DRAW_PART_COVERS, reflection_us - started_us);
         QuadLight reflected = {(uint16_t)(light.left * REFLECTION_LIGHT / COLOR_LIGHT_FULL),
                                (uint16_t)(light.right * REFLECTION_LIGHT / COLOR_LIGHT_FULL)};
-        image_draw_reflection(canvas, image, quad, reflected, REFLECTION_ROWS);
+        image_draw_reflection_smooth(canvas, image, quad, reflected, REFLECTION_ROWS);
         draw_profile_add(DRAW_PART_REFLECTIONS, hal_clock_microseconds() - reflection_us);
     } else {
         image_fill_quad(canvas, quad, flow->config.theme->colors.divider);

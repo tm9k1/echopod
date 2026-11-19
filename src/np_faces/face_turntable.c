@@ -123,7 +123,7 @@ ECHO_NP_FACES_CODE static void picture_disc(const Deck *deck, Image cover)
         int half = (int)shape_isqrt((uint32_t)(side * side - across * across)) / 2;
         Canvas strip =
             canvas_clipped(deck->canvas, (Rect){left + column, deck->centre.y - half, 1, 2 * half});
-        image_draw_quad(&strip, cover, quad);
+        image_draw_quad_smooth(&strip, cover, quad);
     }
     ring(deck, RIM_OUTER * Q4, RIM_INNER * Q4, ALU);
     ring(deck, SPINDLE_HOLE * Q4, 0, VINYL);

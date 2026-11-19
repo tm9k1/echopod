@@ -654,9 +654,9 @@ static void draw_cover(const NowPlayingScreen *now_playing, Canvas *canvas)
     if (!current_cover(now_playing, &cover) || (layout.centered && lyrics_shown(now_playing))) {
         return;
     }
-    image_draw_quad(canvas, cover,
-                    (Quad){layout.cover_left, COVER_FULL_SIZE, layout.cover_top, COVER_FULL_SIZE,
-                           layout.cover_top, COVER_FULL_SIZE});
+    image_draw_quad_smooth(canvas, cover,
+                           (Quad){layout.cover_left, COVER_FULL_SIZE, layout.cover_top, COVER_FULL_SIZE,
+                                  layout.cover_top, COVER_FULL_SIZE});
 }
 
 static Rect line_area(const Theme *theme, int top, int height)

@@ -4,7 +4,7 @@
 #include "ui/label.h"
 
 enum {
-    COVER_MARGIN_TOP = 8,
+    COVER_MARGIN = 2,
     REFLECTION_LIGHT = 80,
     NOTICE_MARGIN = 6
 };
@@ -124,11 +124,39 @@ void home_art_draw(void *context, Canvas *canvas, Rect area)
     if (!art->has_album || cover_cache_full(art->covers, art->album, &cover) != COVER_LOADED) {
         return;
     }
-    int left = area.x + (area.width - COVER_FULL_SIZE) / 2;
-    int top = below ? area.y + (area.height - COVER_FULL_SIZE) / 2 : area.y + COVER_MARGIN_TOP;
-    Quad quad = {left, COVER_FULL_SIZE, top, COVER_FULL_SIZE, top, COVER_FULL_SIZE};
-    image_draw_quad(canvas, cover, quad);
-    int rows = area.y + area.height - (top + COVER_FULL_SIZE);
-    image_draw_reflection(canvas, cover, quad, (QuadLight){REFLECTION_LIGHT, REFLECTION_LIGHT},
-                          rows);
+    int avail_x = below ? area.x : area.x + 1;
+    int avail_y = below ? area.y + 1 : area.y;
+    int avail_w = below ? area.width : area.width - 1;
+    int avail_h = below ? area.height - 1 : area.height;
+    int max_w = avail_w - 2 * COVER_MARGIN;
+    int max_h = avail_h - 2 * COVER_MARGIN;
+    if (max_w <= 0 || max_h <= 0) {
+        return;
+    }
+    int draw_w = max_w;
+    int draw_h = max_h;
+    if (cover.width > 0 && cover.height > 0) {
+        if ((int64_t)cover.width * max_h > (int64_t)max_w * cover.height) {
+            draw_w = max_w;
+            draw_h = (int)(((int64_t)max_w * cover.height + cover.width / 2) / cover.width);
+        } else {
+            draw_h = max_h;
+            draw_w = (int)(((int64_t)max_h * cover.width + cover.height / 2) / cover.height);
+        }
+    }
+    if (draw_w < 1) {
+        draw_w = 1;
+    }
+    if (draw_h < 1) {
+        draw_h = 1;
+    }
+    int left = avail_x + (avail_w - draw_w) / 2;
+    int top = avail_y + (avail_h - draw_h) / 2;
+    Quad quad = {left, draw_w, top, draw_h, top, draw_h};
+    image_draw_quad_smooth(canvas, cover, quad);
+    int rows = area.y + area.height - (top + draw_h);
+    if (rows >= 8) {
+        image_draw_reflection_smooth(canvas, cover, quad,
+                                     (QuadLight){REFLECTION_LIGHT, REFLECTION_LIGHT}, rows);
+    }
 }
