@@ -170,6 +170,25 @@ static void draw_text5x7(SDL_Renderer *renderer, const char *text, int x, int y,
     }
 }
 
+typedef struct {
+    SimButtonId id;
+    Key key;
+    const char *label;
+    float x_tex;
+    float y_tex;
+    float w_tex;
+    float h_tex;
+} SimPhysicalButtonDef;
+
+static const SimPhysicalButtonDef PHYSICAL_BUTTONS[6] = {
+    {SIM_BTN_POWER,    KEY_POWER,       "POWER",  49.0f,  0.0f, 48.0f, 24.0f},
+    {SIM_BTN_VOL_DOWN, KEY_VOLUME_DOWN, "VOL -", 119.0f,  0.0f, 51.0f, 24.0f},
+    {SIM_BTN_VOL_UP,   KEY_VOLUME_UP,   "VOL +", 170.0f,  0.0f, 51.0f, 24.0f},
+    {SIM_BTN_PLAY,     KEY_PLAY,        "PLAY",  243.0f,  0.0f, 48.0f, 24.0f},
+    {SIM_BTN_MENU,     KEY_MENU,        "MENU",  312.0f,  0.0f, 48.0f, 24.0f},
+    {SIM_BTN_BACK,     KEY_BACK,        "BACK",  382.0f,  0.0f, 48.0f, 24.0f},
+};
+
 static void recalculate_layout(void)
 {
     int s = display.scale > 0 ? display.scale : 2;
@@ -184,125 +203,91 @@ static void recalculate_layout(void)
     int sw = 320 * s;
     int sh = 170 * s;
 
+    int case_margin_left = 16;
+    int case_margin_top = 16;
+    int case_margin_bottom = 20;
+    int right_col_w = 96;
+
+    display.win_width = case_margin_left + cur_cw + 16 + right_col_w + 16;
+    display.win_height = case_margin_top + cur_ch + case_margin_bottom;
+
+    int case_x = case_margin_left;
+    int case_y = case_margin_top;
+    float cx = (float)case_x + (float)cur_cw * 0.5f;
+    float cy = (float)case_y + (float)cur_ch * 0.5f;
+
+    display.casing_draw_rect = (SDL_Rect){(int)(cx - (float)c_w * 0.5f), (int)(cy - (float)c_h * 0.5f), c_w, c_h};
+
+    float scx, scy;
     if (rot == 0) {
-        int top_h = 46;
-        int bot_h = 16;
-        int side_w = 12;
-        display.win_width = cur_cw + side_w * 2;
-        display.win_height = cur_ch + top_h + bot_h;
-        int case_x = side_w;
-        int case_y = top_h;
-        float cx = (float)case_x + (float)cur_cw * 0.5f;
-        float cy = (float)case_y + (float)cur_ch * 0.5f;
-        display.casing_draw_rect = (SDL_Rect){case_x, case_y, c_w, c_h};
-        float scx = cx + dx0;
-        float scy = cy + dy0;
+        scx = cx + dx0;
+        scy = cy + dy0;
         display.screen_draw_rect = (SDL_Rect){(int)(scx - (float)sw * 0.5f), (int)(scy - (float)sh * 0.5f), sw, sh};
         display.hit_screen_rect = display.screen_draw_rect;
-
-        int by = 8;
-        int bh = 30;
-        display.buttons[SIM_BTN_POWER] = (SimChassisButton){SIM_BTN_POWER, KEY_POWER, {12, by, 84, bh}, false, "POWER"};
-        display.buttons[SIM_BTN_VOL_DOWN] = (SimChassisButton){SIM_BTN_VOL_DOWN, KEY_VOLUME_DOWN, {104, by, 70, bh}, false, "VOL -"};
-        display.buttons[SIM_BTN_VOL_UP] = (SimChassisButton){SIM_BTN_VOL_UP, KEY_VOLUME_UP, {180, by, 70, bh}, false, "VOL +"};
-        display.buttons[SIM_BTN_PLAY] = (SimChassisButton){SIM_BTN_PLAY, KEY_PLAY, {256, by, 84, bh}, false, "PLAY"};
-        display.buttons[SIM_BTN_MENU] = (SimChassisButton){SIM_BTN_MENU, KEY_MENU, {346, by, 74, bh}, false, "MENU"};
-        display.buttons[SIM_BTN_BACK] = (SimChassisButton){SIM_BTN_BACK, KEY_BACK, {426, by, 74, bh}, false, "BACK"};
-        display.buttons[SIM_BTN_FILES] = (SimChassisButton){SIM_BTN_FILES, (Key)KEY_COUNT, {520, by, 78, bh}, false, "FILES"};
-        display.buttons[SIM_BTN_ROTATE] = (SimChassisButton){SIM_BTN_ROTATE, (Key)KEY_COUNT, {606, by, 84, bh}, false, "ROTATE"};
-        display.buttons[SIM_BTN_CLOSE] = (SimChassisButton){SIM_BTN_CLOSE, (Key)KEY_COUNT, {display.win_width - 38, by, 26, bh}, false, "X"};
     } else if (rot == 1) {
-        int top_h = 42;
-        int bot_h = 16;
-        int left_w = 12;
-        int right_w = 96;
-        display.win_width = cur_cw + left_w + right_w;
-        display.win_height = cur_ch + top_h + bot_h;
-        int case_x = left_w;
-        int case_y = top_h;
-        float cx = (float)case_x + (float)cur_cw * 0.5f;
-        float cy = (float)case_y + (float)cur_ch * 0.5f;
-        display.casing_draw_rect = (SDL_Rect){(int)(cx - (float)c_w * 0.5f), (int)(cy - (float)c_h * 0.5f), c_w, c_h};
-        float scx = cx - dy0;
-        float scy = cy + dx0;
+        scx = cx - dy0;
+        scy = cy + dx0;
         display.screen_draw_rect = (SDL_Rect){(int)(scx - (float)sw * 0.5f), (int)(scy - (float)sh * 0.5f), sw, sh};
         display.hit_screen_rect = (SDL_Rect){(int)(scx - (float)sh * 0.5f), (int)(scy - (float)sw * 0.5f), sh, sw};
-
-        display.buttons[SIM_BTN_FILES] = (SimChassisButton){SIM_BTN_FILES, (Key)KEY_COUNT, {12, 6, 78, 28}, false, "FILES"};
-        display.buttons[SIM_BTN_ROTATE] = (SimChassisButton){SIM_BTN_ROTATE, (Key)KEY_COUNT, {98, 6, 84, 28}, false, "ROTATE"};
-        display.buttons[SIM_BTN_CLOSE] = (SimChassisButton){SIM_BTN_CLOSE, (Key)KEY_COUNT, {display.win_width - 34, 6, 24, 28}, false, "X"};
-
-        int rx = case_x + cur_cw + 6;
-        int rw = 80;
-        int rh = 46;
-        int rgap = 14;
-        int start_y = top_h + 36;
-        display.buttons[SIM_BTN_POWER] = (SimChassisButton){SIM_BTN_POWER, KEY_POWER, {rx, start_y + 0 * (rh + rgap), rw, rh}, false, "POWER"};
-        display.buttons[SIM_BTN_VOL_DOWN] = (SimChassisButton){SIM_BTN_VOL_DOWN, KEY_VOLUME_DOWN, {rx, start_y + 1 * (rh + rgap), rw, rh}, false, "VOL -"};
-        display.buttons[SIM_BTN_VOL_UP] = (SimChassisButton){SIM_BTN_VOL_UP, KEY_VOLUME_UP, {rx, start_y + 2 * (rh + rgap), rw, rh}, false, "VOL +"};
-        display.buttons[SIM_BTN_PLAY] = (SimChassisButton){SIM_BTN_PLAY, KEY_PLAY, {rx, start_y + 3 * (rh + rgap), rw, rh}, false, "PLAY"};
-        display.buttons[SIM_BTN_MENU] = (SimChassisButton){SIM_BTN_MENU, KEY_MENU, {rx, start_y + 4 * (rh + rgap), rw, rh}, false, "MENU"};
-        display.buttons[SIM_BTN_BACK] = (SimChassisButton){SIM_BTN_BACK, KEY_BACK, {rx, start_y + 5 * (rh + rgap), rw, rh}, false, "BACK"};
     } else if (rot == 2) {
-        int top_h = 40;
-        int bot_h = 56;
-        int side_w = 12;
-        display.win_width = cur_cw + side_w * 2;
-        display.win_height = cur_ch + top_h + bot_h;
-        int case_x = side_w;
-        int case_y = top_h;
-        float cx = (float)case_x + (float)cur_cw * 0.5f;
-        float cy = (float)case_y + (float)cur_ch * 0.5f;
-        display.casing_draw_rect = (SDL_Rect){(int)(cx - (float)c_w * 0.5f), (int)(cy - (float)c_h * 0.5f), c_w, c_h};
-        float scx = cx - dx0;
-        float scy = cy - dy0;
+        scx = cx - dx0;
+        scy = cy - dy0;
         display.screen_draw_rect = (SDL_Rect){(int)(scx - (float)sw * 0.5f), (int)(scy - (float)sh * 0.5f), sw, sh};
         display.hit_screen_rect = display.screen_draw_rect;
-
-        display.buttons[SIM_BTN_FILES] = (SimChassisButton){SIM_BTN_FILES, (Key)KEY_COUNT, {12, 6, 78, 28}, false, "FILES"};
-        display.buttons[SIM_BTN_ROTATE] = (SimChassisButton){SIM_BTN_ROTATE, (Key)KEY_COUNT, {98, 6, 84, 28}, false, "ROTATE"};
-        display.buttons[SIM_BTN_CLOSE] = (SimChassisButton){SIM_BTN_CLOSE, (Key)KEY_COUNT, {display.win_width - 38, 6, 26, 28}, false, "X"};
-
-        int by = case_y + cur_ch + 6;
-        int bh = 30;
-        display.buttons[SIM_BTN_BACK] = (SimChassisButton){SIM_BTN_BACK, KEY_BACK, {12, by, 74, bh}, false, "BACK"};
-        display.buttons[SIM_BTN_MENU] = (SimChassisButton){SIM_BTN_MENU, KEY_MENU, {94, by, 74, bh}, false, "MENU"};
-        display.buttons[SIM_BTN_PLAY] = (SimChassisButton){SIM_BTN_PLAY, KEY_PLAY, {176, by, 84, bh}, false, "PLAY"};
-        display.buttons[SIM_BTN_VOL_UP] = (SimChassisButton){SIM_BTN_VOL_UP, KEY_VOLUME_UP, {268, by, 70, bh}, false, "VOL +"};
-        display.buttons[SIM_BTN_VOL_DOWN] = (SimChassisButton){SIM_BTN_VOL_DOWN, KEY_VOLUME_DOWN, {346, by, 70, bh}, false, "VOL -"};
-        display.buttons[SIM_BTN_POWER] = (SimChassisButton){SIM_BTN_POWER, KEY_POWER, {424, by, 84, bh}, false, "POWER"};
     } else {
-        int top_h = 42;
-        int bot_h = 16;
-        int left_w = 96;
-        int right_w = 12;
-        display.win_width = cur_cw + left_w + right_w;
-        display.win_height = cur_ch + top_h + bot_h;
-        int case_x = left_w;
-        int case_y = top_h;
-        float cx = (float)case_x + (float)cur_cw * 0.5f;
-        float cy = (float)case_y + (float)cur_ch * 0.5f;
-        display.casing_draw_rect = (SDL_Rect){(int)(cx - (float)c_w * 0.5f), (int)(cy - (float)c_h * 0.5f), c_w, c_h};
-        float scx = cx + dy0;
-        float scy = cy - dx0;
+        scx = cx + dy0;
+        scy = cy - dx0;
         display.screen_draw_rect = (SDL_Rect){(int)(scx - (float)sw * 0.5f), (int)(scy - (float)sh * 0.5f), sw, sh};
         display.hit_screen_rect = (SDL_Rect){(int)(scx - (float)sh * 0.5f), (int)(scy - (float)sw * 0.5f), sh, sw};
+    }
 
-        display.buttons[SIM_BTN_FILES] = (SimChassisButton){SIM_BTN_FILES, (Key)KEY_COUNT, {left_w, 6, 78, 28}, false, "FILES"};
-        display.buttons[SIM_BTN_ROTATE] = (SimChassisButton){SIM_BTN_ROTATE, (Key)KEY_COUNT, {left_w + 86, 6, 84, 28}, false, "ROTATE"};
-        display.buttons[SIM_BTN_CLOSE] = (SimChassisButton){SIM_BTN_CLOSE, (Key)KEY_COUNT, {display.win_width - 34, 6, 24, 28}, false, "X"};
+    int ux = case_x + cur_cw + 16;
+    int uw = right_col_w;
+    display.buttons[SIM_BTN_CLOSE] = (SimChassisButton){SIM_BTN_CLOSE, (Key)KEY_COUNT, {ux + uw - 26, 12, 26, 26}, false, "X"};
+    display.buttons[SIM_BTN_ROTATE] = (SimChassisButton){SIM_BTN_ROTATE, (Key)KEY_COUNT, {ux, 48, uw, 34}, false, "ROTATE"};
+    display.buttons[SIM_BTN_FILES] = (SimChassisButton){SIM_BTN_FILES, (Key)KEY_COUNT, {ux, 90, uw, 34}, false, "FILES"};
 
-        int lx = 6;
-        int lw = 80;
-        int lh = 46;
-        int lgap = 14;
-        int start_y = top_h + 36;
-        display.buttons[SIM_BTN_BACK] = (SimChassisButton){SIM_BTN_BACK, KEY_BACK, {lx, start_y + 0 * (lh + lgap), lw, lh}, false, "BACK"};
-        display.buttons[SIM_BTN_MENU] = (SimChassisButton){SIM_BTN_MENU, KEY_MENU, {lx, start_y + 1 * (lh + lgap), lw, lh}, false, "MENU"};
-        display.buttons[SIM_BTN_PLAY] = (SimChassisButton){SIM_BTN_PLAY, KEY_PLAY, {lx, start_y + 2 * (lh + lgap), lw, lh}, false, "PLAY"};
-        display.buttons[SIM_BTN_VOL_UP] = (SimChassisButton){SIM_BTN_VOL_UP, KEY_VOLUME_UP, {lx, start_y + 3 * (lh + lgap), lw, lh}, false, "VOL +"};
-        display.buttons[SIM_BTN_VOL_DOWN] = (SimChassisButton){SIM_BTN_VOL_DOWN, KEY_VOLUME_DOWN, {lx, start_y + 4 * (lh + lgap), lw, lh}, false, "VOL -"};
-        display.buttons[SIM_BTN_POWER] = (SimChassisButton){SIM_BTN_POWER, KEY_POWER, {lx, start_y + 5 * (lh + lgap), lw, lh}, false, "POWER"};
+    float scale = (float)c_w / 478.0f;
+    float CX_tex = 478.0f * 0.5f;
+    float CY_tex = 324.0f * 0.5f;
+
+    for (int i = 0; i < 6; i++) {
+        const SimPhysicalButtonDef *pb = &PHYSICAL_BUTTONS[i];
+        float btn_cx_tex = pb->x_tex + pb->w_tex * 0.5f;
+        float btn_cy_tex = pb->y_tex + pb->h_tex * 0.5f;
+        float u = (btn_cx_tex - CX_tex) * scale;
+        float v = (btn_cy_tex - CY_tex) * scale;
+
+        float rx, ry, rw, rh;
+        if (rot == 0) {
+            rx = u;
+            ry = v;
+            rw = pb->w_tex * scale;
+            rh = pb->h_tex * scale;
+        } else if (rot == 1) {
+            rx = -v;
+            ry = u;
+            rw = pb->h_tex * scale;
+            rh = pb->w_tex * scale;
+        } else if (rot == 2) {
+            rx = -u;
+            ry = -v;
+            rw = pb->w_tex * scale;
+            rh = pb->h_tex * scale;
+        } else {
+            rx = v;
+            ry = -u;
+            rw = pb->h_tex * scale;
+            rh = pb->w_tex * scale;
+        }
+
+        SDL_Rect rect = {
+            (int)(cx + rx - rw * 0.5f),
+            (int)(cy + ry - rh * 0.5f),
+            (int)rw,
+            (int)rh
+        };
+        display.buttons[pb->id] = (SimChassisButton){pb->id, pb->key, rect, false, pb->label};
     }
 }
 
@@ -622,39 +607,70 @@ static void draw_button(SDL_Renderer *renderer, const SimChassisButton *btn, boo
 {
     SDL_Rect r = btn->rect;
     if (btn->pressed) {
-        r.y += 2;
-        r.h -= 2;
+        r.y += 1;
+        r.x += 1;
     }
-    SDL_Rect shadow = {r.x + 1, r.y + 2, r.w, r.h};
-    SDL_SetRenderDrawColor(renderer, 8, 10, 12, 255);
-    SDL_RenderFillRect(renderer, &shadow);
-    if (btn->pressed) {
-        SDL_SetRenderDrawColor(renderer, 36, 40, 48, 255);
+    bool is_util = (btn->id == SIM_BTN_ROTATE || btn->id == SIM_BTN_FILES || btn->id == SIM_BTN_CLOSE);
+    bool is_vert = (r.h > r.w);
+
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    if (is_util) {
+        SDL_Rect shadow = {r.x + 1, r.y + 2, r.w, r.h};
+        SDL_SetRenderDrawColor(renderer, 8, 10, 12, 180);
+        SDL_RenderFillRect(renderer, &shadow);
+        if (btn->pressed) {
+            SDL_SetRenderDrawColor(renderer, 36, 40, 48, 255);
+        } else if (btn->id == SIM_BTN_CLOSE) {
+            SDL_SetRenderDrawColor(renderer, 52, 56, 66, 255);
+        } else {
+            SDL_SetRenderDrawColor(renderer, 56, 62, 72, 255);
+        }
+        SDL_RenderFillRect(renderer, &r);
+        if (!btn->pressed) {
+            SDL_SetRenderDrawColor(renderer, 108, 118, 134, 255);
+            SDL_RenderDrawLine(renderer, r.x + 1, r.y + 1, r.x + r.w - 2, r.y + 1);
+        }
+        SDL_SetRenderDrawColor(renderer, 84, 92, 104, 255);
+        SDL_RenderDrawRect(renderer, &r);
     } else {
-        SDL_SetRenderDrawColor(renderer, 58, 64, 74, 255);
+        if (btn->pressed) {
+            SDL_SetRenderDrawColor(renderer, 24, 28, 36, 220);
+        } else {
+            SDL_SetRenderDrawColor(renderer, 44, 50, 60, 180);
+        }
+        SDL_RenderFillRect(renderer, &r);
+        if (!btn->pressed) {
+            SDL_SetRenderDrawColor(renderer, 130, 142, 160, 200);
+            SDL_RenderDrawLine(renderer, r.x + 1, r.y + 1, r.x + r.w - 2, r.y + 1);
+        }
+        SDL_SetRenderDrawColor(renderer, 76, 84, 96, 220);
+        SDL_RenderDrawRect(renderer, &r);
     }
-    SDL_RenderFillRect(renderer, &r);
-    if (!btn->pressed) {
-        SDL_SetRenderDrawColor(renderer, 108, 118, 134, 255);
-        SDL_RenderDrawLine(renderer, r.x + 1, r.y + 1, r.x + r.w - 2, r.y + 1);
-    }
-    SDL_SetRenderDrawColor(renderer, 84, 92, 104, 255);
-    SDL_RenderDrawRect(renderer, &r);
+
     SDL_Color fg = btn->pressed ? (SDL_Color){135, 144, 158, 255} : (SDL_Color){232, 236, 244, 255};
     int cx = r.x + r.w / 2;
-    int cy = (btn->id == SIM_BTN_CLOSE) ? (r.y + r.h / 2) : (r.y + r.h / 2 - 6);
+    int cy = (btn->id == SIM_BTN_CLOSE) ? (r.y + r.h / 2) : (is_vert ? (r.y + r.h / 2 - 8) : (r.y + r.h / 2 - 5));
+
     SDL_SetRenderDrawColor(renderer, fg.r, fg.g, fg.b, fg.a);
     draw_button_icon(renderer, btn->id, cx, cy);
+
     if (btn->label != NULL && btn->id != SIM_BTN_CLOSE) {
         int len = (int)strlen(btn->label);
         int tw = len * 6 - 1;
         int tx = cx - tw / 2;
-        int ty = cy + 9;
+        int ty = is_vert ? (cy + 13) : (cy + 7);
         draw_text5x7(renderer, btn->label, tx, ty, fg);
     }
+
     if (btn->id == SIM_BTN_POWER) {
-        int led_x = r.x + r.w - 10;
-        int led_y = r.y + r.h / 2;
+        int led_x, led_y;
+        if (is_vert) {
+            led_x = r.x + r.w / 2;
+            led_y = r.y + 6;
+        } else {
+            led_x = r.x + r.w - 10;
+            led_y = r.y + r.h / 2;
+        }
         if (powered) {
             SDL_SetRenderDrawColor(renderer, 60, 230, 90, 255);
         } else {
@@ -707,7 +723,7 @@ static void show_panel(void)
 
     const char *badge = "SNOWSKY ECHO MINI";
     int badge_len = (int)strlen(badge);
-    int bx = (display.win_width - badge_len * 6) / 2;
+    int bx = (display.casing_draw_rect.x + display.casing_draw_rect.w / 2) - (badge_len * 6) / 2;
     int by = display.win_height - 12;
     draw_text5x7(display.renderer, badge, bx, by, (SDL_Color){100, 108, 120, 255});
     SDL_RenderPresent(display.renderer);
