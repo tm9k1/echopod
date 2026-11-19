@@ -574,7 +574,7 @@ static void draw_button_icon(SDL_Renderer *renderer, SimButtonId id, int cx, int
         SDL_RenderDrawLine(renderer, cx + 1, cy - 5, cx + 1, cy + 5);
     } else if (id == SIM_BTN_PLAY) {
         for (int p = 0; p < 6; p++) {
-            SDL_RenderDrawLine(renderer, cx - 7 + p, cy - p, cx - 7 + p, cy + p);
+            SDL_RenderDrawLine(renderer, cx - 7 + p, cy - (5 - p), cx - 7 + p, cy + (5 - p));
         }
         SDL_RenderDrawLine(renderer, cx + 2, cy - 5, cx + 2, cy + 5);
         SDL_RenderDrawLine(renderer, cx + 3, cy - 5, cx + 3, cy + 5);
