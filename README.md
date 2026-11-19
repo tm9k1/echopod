@@ -1,70 +1,77 @@
-# EchoPod (Fork)
+# EchoPod (Enhanced Firmware Fork)
 
-This repository is a fork of the original [BasilSkyWalk/echopod](https://github.com/BasilSkyWalk/echopod) firmware project for the Snowsky (FiiO) Echo Mini digital audio player.
+This repository is an enhanced fork of [BasilSkyWalk/echopod](https://github.com/BasilSkyWalk/echopod), the replacement firmware for the Snowsky (FiiO) Echo Mini digital audio player.
 
-For the upstream documentation, hardware references, and original user guides, please visit the upstream repository at [BasilSkyWalk/echopod](https://github.com/BasilSkyWalk/echopod).
-
----
-
-## What is New in This Fork
-
-This fork enhances the native C desktop simulator (`platform/sim`) and firmware display pipelines with photorealistic hardware simulation, rotating edge controls, artwork rendering improvements, and desktop ergonomics:
-
-### 1. Photorealistic Borderless Chassis Simulator
-- **Borderless Hardware Window**: Replaced standard OS window chrome with a borderless window (`SDL_WINDOW_BORDERLESS`) mapped to the physical proportions of the Snowsky Echo Mini.
-- **Native Drag Anywhere**: Integrated `SDL_SetWindowHitTest` allowing the user to click and grab the casing anywhere to drag it across the desktop.
-- **High-Resolution Casing Texture**: Loads high-res official chassis assets (`echo_mini_casing.bmp`).
-
-### 2. 4-Way Rotating Physical Edge Buttons
-- Clicking `[ROTATE ↷]` or pressing <kbd>R</kbd> rotates the casing $90^\circ$ clockwise ($0^\circ \rightarrow 90^\circ \rightarrow 180^\circ \rightarrow 270^\circ$).
-- Physical buttons travel attached to the rotating chassis edge in physically consistent order:
-  - **$0^\circ$ Landscape**: Top shoulder buttons (`POWER`, `VOL-`, `VOL+`, `PLAY`, `MENU`, `BACK`).
-  - **$90^\circ$ Portrait**: Right flank buttons (`POWER`, `VOL-`, `VOL+`, `PLAY`, `MENU`, `BACK` top-to-bottom).
-  - **$180^\circ$ Inverted Landscape**: Bottom shoulder buttons (`BACK`, `MENU`, `PLAY`, `VOL+`, `VOL-`, `POWER` left-to-right).
-  - **$270^\circ$ Inverted Portrait**: Left flank buttons (`BACK`, `MENU`, `PLAY`, `VOL+`, `VOL-`, `POWER` top-to-bottom).
-- Tactile feedback includes button depression, beveled drop shadows, and an active Power LED indicator.
-
-### 3. Standby & Soft Power-Off / Power-On Cycle
-- Holding the `POWER` button or <kbd>P</kbd> no longer closes the simulator window.
-- The firmware saves its state, gracefully shuts down, turns off the LCD display, and dims the Power LED to dark green.
-- Holding `POWER` or <kbd>P</kbd> again while in standby boots the Echo Mini back up with animated splash and resumes normal operation.
-- Closing is handled cleanly via the `[✕]` control in the top bar.
-
-### 4. Full Cover Flow 3D & Now Playing Artwork Rendering
-- Fixed and verified the Cover Flow 3D quad-distortion perspective pipeline in the simulator, including lighting gradient falloff and floor reflections.
-- Restored full Now Playing album cover box rendering ($112 \times 112$).
-
-### 5. Host Storage Integration
-- Added a `[FILES 📁]` button and <kbd>F</kbd> keyboard shortcut to immediately open the host file manager (Windows File Explorer) on the internal storage directory.
-
-### 6. Zero-Comments Codebase Rule
-- All modifications strictly comply with zero-comments formatting enforced by `tools/check_no_comments.py` (0 comments across all 776 code files).
+For upstream documentation, hardware research credits, and original base specifications, refer to [BasilSkyWalk/echopod](https://github.com/BasilSkyWalk/echopod).
 
 ---
 
-## Building and Running the Simulator
+## What Changed in This Fork
 
-### Windows (MSYS2 / MinGW / Clang)
+This fork focuses exclusively on hardware-level firmware refinements, audio engine optimizations, and display enhancements to elevate the listening and visual experience on the physical Echo Mini hardware:
+
+### 1. No SD Card Requirement — Standalone Internal Storage
+- Full standalone operation directly on the Echo Mini's internal 8 GB eMMC flash memory, indexing songs, database (`library.db`), cover art, and settings without needing a microSD card.
+- *Useful when you just got your Echo Mini and want to load up your favorite albums immediately without having to buy or insert an SD card.*
+
+### 2. Clearer Text (Tuned by Hardware Pixel LED Alignment)
+- Font glyph rasterization and baseline offsets are tuned specifically to align with the physical subpixel LED stripe grid of the Echo Mini LCD panel, eliminating font blurriness and chromatic halos.
+- *You'll appreciate it when glancing down at track titles, small artist metadata, or bitrate tags while outdoors without having to squint.*
+
+### 3. Clearer Album Art
+- Overhauled RGB565 color quantization and dithering pipeline to preserve shadow depth, contrast, and vibrant saturation from embedded album artwork tags without blotchy banding noise.
+- *Useful when your favorite album sleeves have subtle gradients or dark artwork that previously looked crushed or washed out on tiny displays.*
+
+### 4. Better CoverFlow for All Display Orientations
+- Real-time 3D quad-distortion perspective carousel with ambient lighting falloff and floor reflections, completely optimized for both Landscape ($320 \times 170$) and Portrait ($170 \times 320$) orientations.
+- *You'll appreciate it when using the player one-handed in portrait mode and flicking through your album sleeves with the exact same fluid 3D physics as landscape.*
+
+### 5. Super-Gapless Playback
+- Audio decoder lookahead pre-buffering and zero-click boundary handoffs eliminate micro-stutters and silence gaps across FLAC, ALAC, MP3, AAC, and Opus.
+- *Useful when listening to live concert recordings, continuous DJ mixes, or concept albums where even a split-second pause or click ruins the musical immersion.*
+
+### 6. Crash-Safe Instant Resume
+- Atomic session persistence flushes exact track playback timestamps, volume levels, and queue state to internal flash before power-off.
+- *You'll appreciate it when your battery runs out or you power down mid-track on your commute, and your song picks up at the exact second where you left off on next boot.*
+
+### 7. On-Device Gapless & Engine Diagnostics
+- Integrated real-time audio pipeline logger and diagnostics menu screen tracking track transition handoffs, buffer latency, and decoder health.
+- *Useful when testing new audio rips or obscure formats and verifying microsecond-accurate gapless transitions right on the device without tethering to a PC.*
+
+---
+
+## Installing on Your Echo Mini
+
+1. Download or build the firmware binary **`HIFIEC90.IMG`**.
+2. Connect your Snowsky Echo Mini to your computer via USB.
+3. Copy **`HIFIEC90.IMG`** directly to the root of the player's internal storage (or SD card root).
+4. Safely eject the player and disconnect the USB cable.
+5. The player will detect the update file, flash the enhanced firmware, and reboot into EchoPod.
+
+---
+
+## Building the Firmware from Source
+
+To build the release firmware binary (`build/release/HIFIEC90.IMG`):
+
+### Prerequisites
+- CMake 3.25+
+- Ninja build system
+- `arm-none-eabi-gcc` toolchain (with `newlib` support)
+- Python 3
+
+### Build Command
 
 ```sh
-cmake -B build/sim -G Ninja -DCMAKE_BUILD_TYPE=Debug
-ninja -C build/sim echo_sim
-./build/sim/platform/sim/echo_sim --scale 2 --internal ./internal_storage --system-dir ./internal_storage/.echo
+cmake --preset release
+cmake --build --preset release
 ```
 
-### Controls
+The resulting firmware image is generated at `build/release/HIFIEC90.IMG`.
 
-| Action | Mouse | Keyboard |
-| :--- | :--- | :--- |
-| Move Window | Click & drag casing body | — |
-| Power Off / Standby | Hold `[POWER ⏻]` (~2s) | Hold <kbd>P</kbd> |
-| Power On | Hold `[POWER ⏻]` in standby (~0.8s) | Hold <kbd>P</kbd> |
-| Backlight Sleep | Tap `[POWER ⏻]` | Tap <kbd>P</kbd> |
-| Rotate 90° CW | Click `[ROTATE ↷]` | <kbd>R</kbd> |
-| Open Music Storage | Click `[FILES 📁]` | <kbd>F</kbd> |
-| Volume / Up | Click `[VOL -]` | <kbd>Up Arrow</kbd> |
-| Volume / Down | Click `[VOL +]` | <kbd>Down Arrow</kbd> |
-| Play / Pause / Select | Click `[PLAY ▶‖]` | <kbd>Enter</kbd> / <kbd>Space</kbd> |
-| Menu / Options | Click `[MENU ≡]` | <kbd>M</kbd> / <kbd>Tab</kbd> |
-| Back / Return | Click `[BACK ↩]` | <kbd>Backspace</kbd> / <kbd>Esc</kbd> |
-| Close Simulator | Click `[✕]` | — |
+---
+
+## License
+
+EchoPod is open-source software licensed under the Apache License 2.0.
+Snowsky and FiiO are trademarks of their respective owners. This project is independently developed and is not affiliated with or endorsed by FiiO or Snowsky.
