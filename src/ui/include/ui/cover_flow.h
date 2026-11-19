@@ -34,6 +34,7 @@ typedef struct CoverStackLayout {
     int side_offset;
     int side_spacing;
     int side_width;
+    int side_far_width;
     int side_height;
     int side_shrink;
 } CoverStackLayout;

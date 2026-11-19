@@ -33,6 +33,7 @@
 #include "library_store.h"
 #include "listen_history.h"
 #include "music_check.h"
+#include "playback/playback_log.h"
 #include "player.h"
 #include "screens/charge_screen.h"
 #include "scrobbler_log.h"
@@ -252,8 +253,8 @@ static Key oriented_key(HalKeyTransition transition)
 {
     if (transition.pressed) {
         const Settings *settings = &app.settings.settings;
-        app.rocker_swapped[transition.key] = rocker_swapped_in(settings->orientation) !=
-                                             (settings->options[OPTION_VOLUME_KEYS] != 0);
+        bool flipped = settings->orientation == ORIENTATION_PORTRAIT_FLIPPED;
+        app.rocker_swapped[transition.key] = (settings->options[OPTION_VOLUME_KEYS] != 0) != flipped;
     }
     return rocker_key(transition.key, app.rocker_swapped[transition.key]);
 }
@@ -470,14 +471,26 @@ static bool slide_running(void)
     return app.slide.active && !slide_finished(&app.slide, app.now_ms);
 }
 
+static KeyEvent oriented_screen_event(KeyEvent event, const Screen *screen, Orientation orientation)
+{
+    if (screen == &app.screens.now_playing.screen) {
+        return event;
+    }
+    if (orientation != ORIENTATION_LANDSCAPE) {
+        event.key = rocker_key(event.key, true);
+    }
+    return event;
+}
+
 static void dispatch_to_screen(KeyEvent event, uint32_t now_ms)
 {
     Screen *screen = top_screen();
     int depth_before = screen_stack_depth(&app.stack);
+    KeyEvent screen_event = oriented_screen_event(event, screen, app.settings.settings.orientation);
     ScreenAction action = opens_now_playing(event) ? now_playing_action()
                           : opens_settings(event)
                               ? screen_action_push(&app.screens.settings.menu.screen)
-                              : screen->handle_key(screen->context, event, now_ms);
+                              : screen->handle_key(screen->context, screen_event, now_ms);
     if (screen_stack_apply(&app.stack, action, now_ms)) {
         use_screen_key_behaviors();
         start_slide(screen, depth_before, hal_clock_milliseconds());
@@ -1027,6 +1040,7 @@ static void run_rescan(void)
 
 void app_release_audio(void)
 {
+    playback_log_flush();
     if (history_on()) {
         listen_history_note_computer(&app.history, hal_clock_milliseconds());
         (void)scrobbler_log_write(&app.history, hal_system_version());
@@ -1139,7 +1153,9 @@ static void follow_prompt_keys(uint32_t now_ms)
     KeyEvent event;
     Screen *screen = &app.prompt.screen;
     while (app.prompt_result < 0 && key_tracker_next_event(&app.keys, &event)) {
-        ScreenAction action = screen->handle_key(screen->context, event, now_ms);
+        KeyEvent screen_event =
+            oriented_screen_event(event, screen, app.settings.settings.orientation);
+        ScreenAction action = screen->handle_key(screen->context, screen_event, now_ms);
         bool dismissed =
             action.type == SCREEN_ACTION_POP || action.type == SCREEN_ACTION_POP_TO_ROOT;
         if (dismissed && app.prompt_result < 0) {

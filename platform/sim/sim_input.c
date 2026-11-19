@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #include "hal/input.h"
+#include "sim_display.h"
 
 enum {
     TRANSITION_CAPACITY = 32
@@ -27,6 +28,7 @@ static const KeyBinding KEY_BINDINGS[] = {
 };
 
 static TransitionQueue queue;
+static bool power_key_down = false;
 
 static bool find_binding(SDL_Keycode keycode, Key *key)
 {
@@ -50,6 +52,19 @@ static void enqueue(HalKeyTransition transition)
 
 void sim_input_handle_event(const SDL_Event *event)
 {
+    if (event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_r && event->key.repeat == 0) {
+        sim_display_rotate_clockwise();
+        return;
+    }
+    if (event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_f && event->key.repeat == 0) {
+        sim_display_open_files();
+        return;
+    }
+    if (event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_p) {
+        power_key_down = true;
+    } else if (event->type == SDL_KEYUP && event->key.keysym.sym == SDLK_p) {
+        power_key_down = false;
+    }
     bool is_key_event = event->type == SDL_KEYDOWN || event->type == SDL_KEYUP;
     if (!is_key_event || event->key.repeat != 0) {
         return;
@@ -63,6 +78,11 @@ void sim_input_handle_event(const SDL_Event *event)
         .pressed = event->type == SDL_KEYDOWN,
         .time_ms = event->key.timestamp,
     });
+}
+
+bool sim_input_is_power_down(void)
+{
+    return power_key_down;
 }
 
 void sim_input_inject(Key key, bool pressed, uint32_t time_ms)

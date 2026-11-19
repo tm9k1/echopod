@@ -49,7 +49,7 @@ static bool start_device(int which, BlockDevice *device)
         return sd_start(device);
     }
     EmmcInfo info;
-    *device = (BlockDevice){emmc_volume_read, NULL, NULL};
+    *device = (BlockDevice){emmc_volume_read, NULL, emmc_volume_write};
     return emmc_start(&info);
 }
 
@@ -68,7 +68,12 @@ static FatVolume *volume_for(const char **path, int *which)
     const char *inside = volume_internal_path(*path);
     *which = inside != NULL ? INTERNAL_VOLUME : CARD_VOLUME;
     *path = inside != NULL ? inside : *path;
-    return mounted(*which);
+    FatVolume *volume = mounted(*which);
+    if (volume == NULL && *which == CARD_VOLUME) {
+        *which = INTERNAL_VOLUME;
+        volume = mounted(INTERNAL_VOLUME);
+    }
+    return volume;
 }
 
 static int free_slot(void)
@@ -122,7 +127,8 @@ void hal_file_close(HalFile *file)
 bool hal_file_write(const char *path, const void *bytes, uint32_t length)
 {
     FatFile file;
-    FatVolume *volume = mounted(CARD_VOLUME);
+    int which = CARD_VOLUME;
+    FatVolume *volume = volume_for(&path, &which);
     if (volume == NULL || !fat_open(volume, path, &file)) {
         return false;
     }
@@ -135,7 +141,8 @@ bool hal_file_write(const char *path, const void *bytes, uint32_t length)
 bool hal_file_write_at(const char *path, uint32_t offset, const void *bytes, uint32_t length)
 {
     FatFile file;
-    FatVolume *volume = mounted(CARD_VOLUME);
+    int which = CARD_VOLUME;
+    FatVolume *volume = volume_for(&path, &which);
     if (volume == NULL || !fat_open(volume, path, &file)) {
         return false;
     }
@@ -189,6 +196,9 @@ static HalReserveResult change_card(FatReserveResult (*change)(FatVolume *, cons
 {
     FatVolume *volume = mounted(CARD_VOLUME);
     if (volume == NULL) {
+        volume = mounted(INTERNAL_VOLUME);
+    }
+    if (volume == NULL) {
         return HAL_RESERVE_FAILED;
     }
     stamp_from_clock();
@@ -235,7 +245,7 @@ static int free_dir_slot(void)
 
 bool hal_storage_card_ready(void)
 {
-    return mounted(CARD_VOLUME) != NULL;
+    return mounted(CARD_VOLUME) != NULL || mounted(INTERNAL_VOLUME) != NULL;
 }
 
 bool hal_dir_open(HalDir *dir, const char *path)
@@ -249,7 +259,8 @@ bool hal_dir_open(HalDir *dir, const char *path)
     }
     dir_in_use[slot] = true;
     dir_volume[slot] = (uint8_t)which;
-    owes_internal[slot] = which == CARD_VOLUME && path[0] == '/' && path[1] == '\0';
+    owes_internal[slot] =
+        mounted(CARD_VOLUME) != NULL && which == CARD_VOLUME && path[0] == '/' && path[1] == '\0';
     dir->handle = slot;
     return true;
 }

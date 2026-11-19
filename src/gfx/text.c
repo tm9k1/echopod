@@ -9,6 +9,50 @@ static Rect glyph_area(const Glyph *glyph, Point pen)
     return (Rect){pen.x + glyph->left, pen.y - glyph->top, glyph->width, glyph->height};
 }
 
+static unsigned isqrt_6bit(unsigned n)
+{
+    unsigned res = 0;
+    unsigned bit = 1u << 10;
+    while (bit != 0) {
+        if (n >= res + bit) {
+            n -= res + bit;
+            res = (res >> 1) + bit;
+        } else {
+            res >>= 1;
+        }
+        bit >>= 2;
+    }
+    return res;
+}
+
+Color text_blend(Color background, Color foreground, uint8_t level)
+{
+    static const uint8_t SHARPENED[16] = {
+        0, 0, 2, 4, 6, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15
+    };
+    if (level >= COLOR_ALPHA_OPAQUE) {
+        return foreground;
+    }
+    uint8_t effective = SHARPENED[level];
+    if (effective == 0) {
+        return background;
+    }
+    if (effective >= COLOR_ALPHA_OPAQUE) {
+        return foreground;
+    }
+    unsigned back_r = (background >> 11) & 0x1F;
+    unsigned back_g = (background >> 5) & 0x3F;
+    unsigned back_b = background & 0x1F;
+    unsigned fore_r = (foreground >> 11) & 0x1F;
+    unsigned fore_g = (foreground >> 5) & 0x3F;
+    unsigned fore_b = foreground & 0x1F;
+    unsigned back_weight = (unsigned)COLOR_ALPHA_OPAQUE - effective;
+    unsigned r_sq = (back_r * back_r * back_weight + fore_r * fore_r * effective + 7u) / 15u;
+    unsigned g_sq = (back_g * back_g * back_weight + fore_g * fore_g * effective + 7u) / 15u;
+    unsigned b_sq = (back_b * back_b * back_weight + fore_b * fore_b * effective + 7u) / 15u;
+    return (Color)((isqrt_6bit(r_sq) << 11) | (isqrt_6bit(g_sq) << 5) | isqrt_6bit(b_sq));
+}
+
 static void draw_glyph(Canvas *canvas, TextStyle style, const Glyph *glyph, Point pen)
 {
     Rect area = glyph_area(glyph, pen);
@@ -25,7 +69,7 @@ static void draw_glyph(Canvas *canvas, TextStyle style, const Glyph *glyph, Poin
         for (int x = visible.x; x < visible.x + visible.width; x++) {
             uint8_t level = font_bitmap_level(bitmap, glyph, x - area.x, y - area.y);
             if (level > 0) {
-                *pixel = color_blend(*pixel, style.color, level);
+                *pixel = text_blend(*pixel, style.color, level);
             }
             pixel++;
         }
@@ -126,12 +170,16 @@ void text_draw_glyph_scaled(Canvas *canvas, TextStyle style, Rect box, uint32_t 
     Rect area = {box.x + (box.width - width) / 2, box.y + (box.height - height) / 2, width, height};
     Rect visible = rect_intersection(rect_intersection(area, box), canvas->clip);
     const uint8_t *bitmap = font_glyph_bitmap(style.font, glyph);
+    int stride = canvas->bounds.width;
     for (int y = visible.y; y < visible.y + visible.height; y++) {
+        Color *pixel =
+            &canvas->pixels[(y - canvas->bounds.y) * stride + (visible.x - canvas->bounds.x)];
         for (int x = visible.x; x < visible.x + visible.width; x++) {
             uint8_t level = smoothed_level(bitmap, glyph, x - area.x, y - area.y, scale);
             if (level > 0) {
-                canvas_blend_pixel(canvas, (Point){x, y}, style.color, level);
+                *pixel = text_blend(*pixel, style.color, level);
             }
+            pixel++;
         }
     }
 }

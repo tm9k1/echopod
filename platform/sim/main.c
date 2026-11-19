@@ -6,6 +6,7 @@
 #include "app/app.h"
 #include "core/deadline.h"
 #include "hal/clock.h"
+#include "hal/display.h"
 #include "sim_audio.h"
 #include "sim_clock.h"
 #include "sim_display.h"
@@ -92,6 +93,9 @@ static bool pump_events(void)
         if (event.type == SDL_QUIT) {
             keep_running = false;
         }
+        if (!sim_display_handle_event(&event)) {
+            keep_running = false;
+        }
         sim_input_handle_event(&event);
     }
     return keep_running;
@@ -102,7 +106,13 @@ static void inject_scripted_keys(SimSession *session)
     while (session->next_event < session->event_count &&
            session->events[session->next_event].frame == session->frames) {
         const SimScriptEvent *event = &session->events[session->next_event++];
-        sim_input_inject(event->key, event->pressed, hal_clock_milliseconds());
+        if ((int)event->key == KEY_COUNT) {
+            if (event->pressed) {
+                sim_display_rotate_clockwise();
+            }
+        } else {
+            sim_input_inject(event->key, event->pressed, hal_clock_milliseconds());
+        }
     }
 }
 
@@ -155,7 +165,45 @@ static void finish_frame(SimSession *session, uint32_t frame_started_ms, uint32_
 static void run(SimSession *session)
 {
     uint32_t next_title_ms = hal_clock_milliseconds();
-    while (pump_events() && !frame_limit_reached(session) && !sim_power_off_requested()) {
+    bool app_running = true;
+    bool waiting_for_power_release = false;
+    uint32_t power_pressed_ms = 0;
+    while (pump_events() && !frame_limit_reached(session)) {
+        if (sim_power_off_requested()) {
+            if (session->options.headless || session->options.frame_limit > 0) {
+                break;
+            }
+            if (app_running) {
+                app_stop();
+                hal_display_set_power(false);
+                app_running = false;
+                waiting_for_power_release = true;
+                power_pressed_ms = 0;
+            }
+            if (waiting_for_power_release) {
+                if (!sim_display_is_power_pressed()) {
+                    waiting_for_power_release = false;
+                }
+            } else {
+                if (sim_display_is_power_pressed()) {
+                    if (power_pressed_ms == 0) {
+                        power_pressed_ms = hal_clock_milliseconds();
+                    } else if (hal_clock_milliseconds() - power_pressed_ms >= 800) {
+                        sim_power_clear_off_requested();
+                        hal_display_set_power(true);
+                        app_start();
+                        app_show_splash();
+                        app_running = true;
+                        waiting_for_power_release = true;
+                        power_pressed_ms = 0;
+                    }
+                } else {
+                    power_pressed_ms = 0;
+                }
+            }
+            SDL_Delay(FRAME_PERIOD_MS);
+            continue;
+        }
         uint32_t frame_started_ms = hal_clock_milliseconds();
         inject_scripted_keys(session);
         app_step();

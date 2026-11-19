@@ -6,7 +6,7 @@
 #include "diagnostics_rows.h"
 
 enum {
-    RELEASE_DIAGNOSTICS_COUNT = 17
+    RELEASE_DIAGNOSTICS_COUNT = 18
 };
 
 static MenuItem value_item(StringId label, const char *(*value)(const void *context))
@@ -43,6 +43,8 @@ void diagnostics_menu_build(AppScreens *screens, AppOptions *options, const Them
     items[15] = value_item(STR_DIAG_POWER, diagnostics_row_power);
     items[16] =
         action_item(STR_DIAG_SAVINGS, diagnostics_row_savings_next, diagnostics_row_savings);
+    items[17] =
+        (MenuItem){.label = "Gapless", .select = NULL, .context = NULL, .value = diagnostics_row_gapless};
     app_screens_build_menu(&screens->diagnostics, i18n_text(STR_DIAG_TITLE), items,
                            RELEASE_DIAGNOSTICS_COUNT, theme);
 }

@@ -2,6 +2,7 @@ add_library(echo_playback STATIC
     bookmarks.c
     lyrics.c
     play_queue.c
+    playback_log.c
     resume_state.c
     spoken.c
     up_next.c

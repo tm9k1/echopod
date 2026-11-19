@@ -7,3 +7,6 @@ __pycache__/
 .venv/
 log/
 assets/fonts/noto-cjk/*.otf
+*.exe
+internal_storage/
+*.bmp

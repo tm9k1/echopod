@@ -47,7 +47,7 @@ static void partial_coverage_blends_with_the_background(void)
 {
     Canvas canvas = blank_canvas();
     text_draw(&canvas, INK_STYLE, (Point){0, 1}, "B");
-    CHECK_EQUAL(color_blend(BACKGROUND, INK, 4), canvas_pixel_at(&canvas, 0, 0));
+    CHECK_EQUAL(text_blend(BACKGROUND, INK, 4), canvas_pixel_at(&canvas, 0, 0));
     CHECK_EQUAL(INK, canvas_pixel_at(&canvas, 1, 0));
 }
 

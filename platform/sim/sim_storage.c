@@ -43,6 +43,11 @@ void sim_storage_configure_internal(const char *internal_directory)
     storage.internal_directory = internal_directory;
 }
 
+const char *sim_storage_internal_directory(void)
+{
+    return storage.internal_directory;
+}
+
 bool hal_storage_card_ready(void)
 {
     return storage.card_directory != NULL;

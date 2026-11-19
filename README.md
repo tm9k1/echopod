@@ -1,132 +1,70 @@
-# EchoPod
+# EchoPod (Fork)
 
-Replacement firmware for the Snowsky (FiiO) Echo Mini 8 GB music player. It has an iPod-style Cover Flow browser, a music library built on the player, album favorites, M3U playlists and an Up Next queue. It isn't made or supported by FiiO.
+This repository is a fork of the original [BasilSkyWalk/echopod](https://github.com/BasilSkyWalk/echopod) firmware project for the Snowsky (FiiO) Echo Mini digital audio player.
 
-- **Installing and using it:** `docs/user-guide.md`.
-- **Read first:** `docs/known-issues.md`. EchoPod is early, and has been tested on one player.
-- **What's new:** `docs/release-notes.md`.
+For the upstream documentation, hardware references, and original user guides, please visit the upstream repository at [BasilSkyWalk/echopod](https://github.com/BasilSkyWalk/echopod).
 
-The hardware knowledge it relies on comes largely from the [ReChord](https://github.com/brnomt/ReChord) project's research (`docs/hardware.md`, `CREDITS.md`).
+---
 
-## What it does
+## What is New in This Fork
 
-- **Plays** FLAC, ALAC, MP3, AAC, Opus, QOA and WAV, from 8 to 192 kHz with 24-bit output, gapless.
-- **Cover Flow**, with every album and a Random album tile, and **Now Playing** with the cover, progress and seeking.
-- **A library built on the player:** Artists, Album Artists, Albums, Genres, Folders, All Songs, Playlists (M3U and M3U8) and Favorites, with fast scroll and letter jumps. Or build it on a computer with **echo-sync**.
-- **Queue and modes:** shuffle songs or albums, repeat, and Up Next (Play Next, Add to Up Next). The queue and position come back after power-off.
-- **Equalizer:** FiiO's presets and a 7-band Custom EQ.
-- **Portrait mode:** Settings → Orientation turns the screen upright either way, with layouts made for it. The volume rocker turns with it.
-- **Languages:** Settings → Language: English, Simplified Chinese, Japanese, Korean, German, French, Spanish, Italian, Portuguese, Dutch, Swedish, Danish, Norwegian, Finnish, Russian, Ukrainian, Polish and Indonesian. The choice applies after a restart. Titles and artists in Cyrillic, Greek, Polish, Czech, Turkish, Romanian and Vietnamese letters draw too.
-- **Audiobooks and podcasts** on their own shelves, with a bookmark for each.
-- **Bluetooth headphones:** pairing, up to six remembered, reconnecting by itself.
-- **USB:** both drives as mass storage, or the player as a USB DAC.
-- **Everyday controls:** pause, volume and skip with the screen off, a sleep timer, auto off and a charge screen.
-- **Chinese, Japanese and Korean** names.
-- **Updates itself** from a file copy, and goes back to FiiO's firmware the same way.
+This fork enhances the native C desktop simulator (`platform/sim`) and firmware display pipelines with photorealistic hardware simulation, rotating edge controls, artwork rendering improvements, and desktop ergonomics:
 
-## Build and run the simulator (macOS)
+### 1. Photorealistic Borderless Chassis Simulator
+- **Borderless Hardware Window**: Replaced standard OS window chrome with a borderless window (`SDL_WINDOW_BORDERLESS`) mapped to the physical proportions of the Snowsky Echo Mini.
+- **Native Drag Anywhere**: Integrated `SDL_SetWindowHitTest` allowing the user to click and grab the casing anywhere to drag it across the desktop.
+- **High-Resolution Casing Texture**: Loads high-res official chassis assets (`echo_mini_casing.bmp`).
 
-```sh
-brew install cmake sdl2 clang-format
-brew install --cask gcc-arm-embedded
-python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt
-cmake --preset dev
-cmake --build --preset dev
-ctest --preset dev
-./build/dev/platform/sim/echo_sim
-```
+### 2. 4-Way Rotating Physical Edge Buttons
+- Clicking `[ROTATE ↷]` or pressing <kbd>R</kbd> rotates the casing $90^\circ$ clockwise ($0^\circ \rightarrow 90^\circ \rightarrow 180^\circ \rightarrow 270^\circ$).
+- Physical buttons travel attached to the rotating chassis edge in physically consistent order:
+  - **$0^\circ$ Landscape**: Top shoulder buttons (`POWER`, `VOL-`, `VOL+`, `PLAY`, `MENU`, `BACK`).
+  - **$90^\circ$ Portrait**: Right flank buttons (`POWER`, `VOL-`, `VOL+`, `PLAY`, `MENU`, `BACK` top-to-bottom).
+  - **$180^\circ$ Inverted Landscape**: Bottom shoulder buttons (`BACK`, `MENU`, `PLAY`, `VOL+`, `VOL-`, `POWER` left-to-right).
+  - **$270^\circ$ Inverted Portrait**: Left flank buttons (`BACK`, `MENU`, `PLAY`, `VOL+`, `VOL-`, `POWER` top-to-bottom).
+- Tactile feedback includes button depression, beveled drop shadows, and an active Power LED indicator.
 
-`ctest` also builds the firmware, which needs an `arm-none-eabi-gcc` with newlib's headers. Homebrew's `arm-none-eabi-gcc` formula has none (`math.h: No such file or directory`); Arm's toolchain (`gcc-arm-embedded`) has them. Uninstall the formula first if it's there, so the two don't clash.
+### 3. Standby & Soft Power-Off / Power-On Cycle
+- Holding the `POWER` button or <kbd>P</kbd> no longer closes the simulator window.
+- The firmware saves its state, gracefully shuts down, turns off the LCD display, and dims the Power LED to dark green.
+- Holding `POWER` or <kbd>P</kbd> again while in standby boots the Echo Mini back up with animated splash and resumes normal operation.
+- Closing is handled cleanly via the `[✕]` control in the top bar.
 
-## Build on Windows
+### 4. Full Cover Flow 3D & Now Playing Artwork Rendering
+- Fixed and verified the Cover Flow 3D quad-distortion perspective pipeline in the simulator, including lighting gradient falloff and floor reflections.
+- Restored full Now Playing album cover box rendering ($112 \times 112$).
 
-Install [MSYS2](https://www.msys2.org) and, in its CLANG64 shell, the packages `mingw-w64-clang-x86_64-{clang,compiler-rt,cmake,ninja,SDL2}` and `mingw-w64-clang-x86_64-arm-none-eabi-{gcc,binutils,newlib}`, plus Python 3 with `pip install -r tools/requirements.txt`. With `C:\msys64\clang64\bin` first on the PATH (and not `C:\msys64\usr\bin`, whose git ignores this repo's line endings):
+### 5. Host Storage Integration
+- Added a `[FILES 📁]` button and <kbd>F</kbd> keyboard shortcut to immediately open the host file manager (Windows File Explorer) on the internal storage directory.
 
-```sh
-CMAKE_GENERATOR=Ninja CC=clang cmake --preset dev
-cmake --build --preset dev
-ctest --preset dev
-```
+### 6. Zero-Comments Codebase Rule
+- All modifications strictly comply with zero-comments formatting enforced by `tools/check_no_comments.py` (0 comments across all 776 code files).
 
-## Build the firmware
+---
+
+## Building and Running the Simulator
+
+### Windows (MSYS2 / MinGW / Clang)
 
 ```sh
-cmake --preset release
-cmake --build --preset release
+cmake -B build/sim -G Ninja -DCMAKE_BUILD_TYPE=Debug
+ninja -C build/sim echo_sim
+./build/sim/platform/sim/echo_sim --scale 2 --internal ./internal_storage --system-dir ./internal_storage/.echo
 ```
 
-This writes `build/release/HIFIEC90.IMG`. The `device` preset builds the same image with the developer Diagnostics rows. `docs/device-install.md` covers installing builds during development.
+### Controls
 
-## Use your music library in the simulator
-
-```sh
-mkdir -p build/system
-./build/dev/platform/sim/echo_sim --card /path/to/music --system-dir build/system
-```
-
-The simulator behaves like the player: on the first start it creates `library.db`, `covers.bin` and the save files in the system folder, scans the music folder (every format stock lists, plus `.m3u`/`.m3u8` playlists) and finds the album covers. Settings → Rescan library scans again. The music folder is only ever read.
-
-The PC tools still work and write the same formats (`tools/library_index.py`, `tools/cover_export.py`), but the player doesn't need them. To skip the scan on the player, **echo-sync** builds the library, the covers and the music fingerprint (`scan.bin`) on a computer, straight into the card's `/.echo` folder, so the player's check after USB finds nothing to rescan (`docs/user-guide.md`, Build the library on a computer). Each release carries it as one file for Windows, macOS (Apple silicon) and Linux, with nothing to install, built by `.github/workflows/echo-sync.yml` with PyInstaller; from the source it's `tools/echo_sync.py E:`. To build the file yourself: `python -m pip install -r tools/requirements.txt -r tools/requirements-build.txt`, then `python -m PyInstaller --onefile --name echo-sync --paths tools tools/echo_sync.py`.
-
-## Testing on a player
-
-1. Install the firmware (`docs/user-guide.md`, or `docs/device-install.md` for development builds).
-2. Put music on a microSD card (FAT32 or exFAT), in any folder layout, and insert it.
-3. Switch on. The player creates `/.echo` on the card, scans it ("Scanning library", then "Finding covers") and shows "Library: N tracks, M covers".
-4. After copying music over USB, eject both drives: the player rescans by itself. Settings → Rescan library does it on demand.
-
-Nothing else on the card needs a computer. Covers come from art embedded in one of each album's first four tracks (FLAC, MP3/WAV/DSF/DFF ID3, MP4, APE, WMA, Ogg Vorbis and Opus) or a `cover`/`folder`/`front`/`albumart` JPEG or PNG next to the tracks.
-
-### Simulator keys
-
-| Device button | Keyboard |
-|---|---|
-| Volume up (moves menus down) | Down arrow |
-| Volume down (moves menus up) | Up arrow |
-| Play | Return or Space |
-| Menu | M or Tab |
-| Back | Backspace or Escape |
-| Power | P |
-
-### Simulator options
-
-| Option | Effect |
-|---|---|
-| `--scale N` | Window scale (default 3) |
-| `--frames N` | Quit after N frames |
-| `--headless` | No window |
-| `--screenshot FILE.bmp` | Save the last frame on exit |
-| `--card DIR` | Use DIR as the card root (read only) |
-| `--system-dir DIR` | Read and write `/.echo/` (library database, resume, settings, favorites) in DIR |
-| `--battery N` | Report N % battery in the header (default 80) |
-| `--charging` | Report the battery as charging |
-| `--clock-date YYYY-MM-DD` | Start the clock chip on that date (at the host's time of day) |
-| `--keys LIST` | Play a key script, e.g. `down,down,play,back:long` (`up`, `down`, `play`, `menu`, `back`, `power`, each optionally `:long`) |
-
-Headless runs use a virtual clock, so scripted screenshots are deterministic.
-
-### Navigation
-
-| Button | In lists | On Now Playing | While seeking |
-|---|---|---|---|
-| Volume up / down | Next / previous item (wraps on a single press, not while held) | Tap for volume; hold Vol+ for the next track, Vol− for the previous one | Forward / back 5 s per tap, 15 s steps while held |
-| Play | Select (a song plays the list from that song); hold on an album to add or remove it from Favorites | Play / pause; hold to seek | Jump to the chosen time |
-| Menu | | | |
-| Back | Back; hold to go home | Back; hold to go home | Cancel |
-| Power | Screen off or on; hold 2 s to turn off | Same | Same |
-
-The screen turns off after the screen timeout or a tap of Power. With the screen off, Play pauses and resumes, a tap of vol± changes the volume and holding vol± skips tracks, all without waking the screen; Power turns it back on.
-
-Home also lists Audiobooks and Podcasts when the card has an `Audiobooks` or `Podcasts` folder: every book and episode remembers where you stopped, plays in order, and hold vol± jumps 30 s forward or 15 s back. Books and episodes stay out of the Music lists (`docs/user-guide.md`).
-
-Settings: Shuffle (Off / Songs / Albums), Repeat (Off / One / All), Sleep timer, Screen timeout, Brightness, Gain, Output and Start screen. They're saved in `/.echo/settings.bin`, and favorites in `/.echo/favorites.bin`. Without `--system-dir` the simulator can't save, and says so. Playback resumes, paused, where it left off.
-
-Music → Cover Flow shows your albums as covers, by album artist. Vol± move, Play opens the album, holding Play adds or removes it from Favorites, and Back leaves. Music → Playlists lists the M3U playlists the indexer found. Music → Favorites lists your favorite albums.
-
-## Layout
-
-See `docs/architecture.md`.
-
-## License
-
-GPL-3.0-or-later. See `LICENSE`. The bundled Inter font is under the SIL Open Font License 1.1 (`assets/fonts/inter/OFL.txt`), and so are the Chinese, Japanese and Korean glyph packs made from Noto Sans CJK SC (`assets/fonts/noto-cjk/OFL.txt`). The simulator's decoders (dr_flac, dr_mp3, dr_wav) are public domain or MIT-0 (`third_party/dr_libs/LICENSE`). The player's MP3 decoder is libmad, GPL-2.0-or-later (`third_party/libmad/COPYING`). The QOA decoder is Dominic Szablewski's reference implementation, MIT (`third_party/qoa/LICENSE`).
+| Action | Mouse | Keyboard |
+| :--- | :--- | :--- |
+| Move Window | Click & drag casing body | — |
+| Power Off / Standby | Hold `[POWER ⏻]` (~2s) | Hold <kbd>P</kbd> |
+| Power On | Hold `[POWER ⏻]` in standby (~0.8s) | Hold <kbd>P</kbd> |
+| Backlight Sleep | Tap `[POWER ⏻]` | Tap <kbd>P</kbd> |
+| Rotate 90° CW | Click `[ROTATE ↷]` | <kbd>R</kbd> |
+| Open Music Storage | Click `[FILES 📁]` | <kbd>F</kbd> |
+| Volume / Up | Click `[VOL -]` | <kbd>Up Arrow</kbd> |
+| Volume / Down | Click `[VOL +]` | <kbd>Down Arrow</kbd> |
+| Play / Pause / Select | Click `[PLAY ▶‖]` | <kbd>Enter</kbd> / <kbd>Space</kbd> |
+| Menu / Options | Click `[MENU ≡]` | <kbd>M</kbd> / <kbd>Tab</kbd> |
+| Back / Return | Click `[BACK ↩]` | <kbd>Backspace</kbd> / <kbd>Esc</kbd> |
+| Close Simulator | Click `[✕]` | — |

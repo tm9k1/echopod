@@ -11,6 +11,7 @@ typedef struct KeyName {
 static const KeyName KEY_NAMES[] = {
     {"up", KEY_VOLUME_DOWN}, {"down", KEY_VOLUME_UP}, {"play", KEY_PLAY},
     {"menu", KEY_MENU},      {"back", KEY_BACK},      {"power", KEY_POWER},
+    {"rotate", (Key)KEY_COUNT},
 };
 
 static const char LONG_SUFFIX[] = ":long";

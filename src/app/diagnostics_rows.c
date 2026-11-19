@@ -9,6 +9,7 @@
 #include "hal/power.h"
 #include "hal/system.h"
 #include "hal/time.h"
+#include "playback/playback_log.h"
 
 const char *diagnostics_row_firmware(const void *context)
 {
@@ -176,4 +177,10 @@ const char *diagnostics_row_savings(const void *context)
     (void)context;
     diagnostics_savings_text(hal_system_power_savings(), savings_text, sizeof savings_text);
     return savings_text;
+}
+
+const char *diagnostics_row_gapless(const void *context)
+{
+    (void)context;
+    return playback_log_last();
 }

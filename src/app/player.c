@@ -6,6 +6,7 @@
 #include "core/i18n.h"
 #include "core/string_builder.h"
 #include "hal/storage.h"
+#include "playback/playback_log.h"
 #include "playback/resume_state.h"
 #include "playback/spoken.h"
 
@@ -89,11 +90,13 @@ static void queue_upcoming(Player *player)
     player->has_next =
         upcoming_track(player, &upcoming, &track) && track_path(player, track, path, sizeof path);
     if (!player->has_next) {
+        playback_log_event("QUEUE", NULL, "None upcoming");
         hal_audio_queue_next(NULL, 0);
         return;
     }
     player->next_cursor = upcoming;
     player->next_token = new_token(player);
+    playback_log_event("QUEUE", path, "Sent to audio HAL");
     hal_audio_queue_next(path, player->next_token);
 }
 
@@ -437,15 +440,22 @@ static void take_next_and_note(Player *player)
 
 static void advance_to_next(Player *player)
 {
+    char path[PLAYER_PATH_CAPACITY];
     take_next_and_note(player);
+    if (track_path(player, player->track, path, sizeof path)) {
+        playback_log_event("HANDOVER", path, "Gapless transition reached DMA");
+    }
     player->current_token = player->next_token;
     player->has_next = false;
     queue_upcoming(player);
     save_later(player);
+    playback_log_flush();
 }
 
 static void finish_track(Player *player, bool failed)
 {
+    playback_log_event("FINISH", NULL, failed ? "Track failed" : "Track ended");
+    playback_log_flush();
     if (failed && move_and_start(player, 1, player->repeat != REPEAT_OFF)) {
         return;
     }

@@ -20,6 +20,7 @@
 #include "hal/clock.h"
 #include "hal/storage.h"
 #include "hal/system.h"
+#include "playback/playback_log.h"
 
 enum {
     RING_BLOCKS = 7,
@@ -597,8 +598,16 @@ static void follow_queue(void)
     if (!engine_ready || queued_path[0] == '\0') {
         return;
     }
-    bool restart = stream_service == NULL && (clock_for(queued_light) != hal_system_clock_mhz() ||
+    bool clock_insufficient = clock_for(queued_light) > hal_system_clock_mhz();
+    bool restart = stream_service == NULL && (clock_insufficient ||
                                               core1_restart_for(queued_probe));
+    if (clock_insufficient) {
+        playback_log_event("DEFER", queued_path, "Clock too slow");
+    } else if (core1_restart_for(queued_probe)) {
+        playback_log_event("DEFER", queued_path, "Core1 switch required");
+    } else {
+        playback_log_event("HAL_QUEUE", queued_path, "Accepted gapless");
+    }
     audio_engine_queue_next(&engine, restart ? NULL : queued_path, queued_token);
     deferred = restart;
 }
@@ -606,16 +615,19 @@ static void follow_queue(void)
 bool hal_audio_play(const char *path, uint32_t start_ms, uint32_t token)
 {
     ensure_engine();
+    playback_log_event("PLAY", path, "Play called");
     resting = false;
     deferred = false;
     stop_tone();
     stop_transfer();
     choose_clock(path);
     if (!audio_engine_play(&engine, path, start_ms, token)) {
+        playback_log_event("PLAY_FAIL", path, "Engine play failed");
         return false;
     }
     if (!start_output(true)) {
         audio_engine_stop(&engine);
+        playback_log_event("OUTPUT_FAIL", path, "Start output failed");
         return false;
     }
     return true;
@@ -655,6 +667,7 @@ static void start_deferred(void)
         return;
     }
     deferred = false;
+    playback_log_event("DEFERRED_START", queued_path, "Deferred track starting");
     hal_audio_play(queued_path, 0, queued_token);
 }
 
@@ -892,6 +905,7 @@ static void change_rate(void)
     if (!audio_engine_wants_rate(&engine, &rate)) {
         return;
     }
+    playback_log_event("RATE_CHANGE", NULL, "Draining for rate change");
     stop_transfer();
     audio_engine_restart(&engine);
     if (!start_output(true)) {

@@ -8,3 +8,4 @@
 
 void sim_input_handle_event(const SDL_Event *event);
 void sim_input_inject(Key key, bool pressed, uint32_t time_ms);
+bool sim_input_is_power_down(void);

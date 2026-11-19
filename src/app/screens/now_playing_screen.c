@@ -197,7 +197,7 @@ NowPlayingControls now_playing_controls_of(const uint8_t *options)
 static NowPlayingCommand rocker_command(KeyGesture gesture, NowPlayingControls controls, bool up)
 {
     NowPlayingCommand volume = up ? NOW_PLAYING_VOLUME_UP : NOW_PLAYING_VOLUME_DOWN;
-    NowPlayingCommand skip = up ? NOW_PLAYING_NEXT : NOW_PLAYING_PREVIOUS;
+    NowPlayingCommand skip = up ? NOW_PLAYING_PREVIOUS : NOW_PLAYING_NEXT;
     bool held = gesture != KEY_GESTURE_PRESS;
     if (controls.rocker == ROCKER_SKIP_VOLUME) {
         return held ? volume : skip;

@@ -20,3 +20,4 @@ const char *diagnostics_row_clock(const void *context);
 const char *diagnostics_row_power(const void *context);
 ScreenAction diagnostics_row_savings_next(void *context);
 const char *diagnostics_row_savings(const void *context);
+const char *diagnostics_row_gapless(const void *context);

@@ -31,9 +31,9 @@ static void the_release_menu_keeps_only_the_safe_rows(void)
     static const char *const SAFE[] = {
         "Key test",    "Firmware",   "Battery",  "Last start",   "Last step", "Last USB",
         "USB errors",  "Jack 3.5",   "Jack 4.4", "Last battery", "Panel",     "Clock",
-        "Last update", "Last stack", "Stack",    "Power",        "Savings"};
+        "Last update", "Last stack", "Stack",    "Power",        "Savings",   "Gapless"};
     const MenuConfig *menu = built();
-    CHECK_EQUAL(17, menu->item_count);
+    CHECK_EQUAL(18, menu->item_count);
     for (size_t index = 0; index < sizeof SAFE / sizeof SAFE[0]; index++) {
         CHECK(has_row(menu, SAFE[index]));
     }

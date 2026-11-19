@@ -69,23 +69,28 @@ Quad cover_flow_stacked_quad(const CoverStackLayout *layout, int32_t relative)
 {
     int32_t distance = abs_of(relative);
     int offset = lerp(0, layout->side_offset, distance);
-    int width = lerp(layout->center_size, layout->side_width, distance);
+    int near_w = lerp(layout->center_size, layout->side_width, distance);
+    int far_target = layout->side_far_width > 0 ? layout->side_far_width : layout->side_width;
+    int far_w = lerp(layout->center_size, far_target, distance);
     int height = lerp(layout->center_size, layout->side_height, distance);
     if (distance >= COVER_FLOW_ONE) {
         int32_t beyond = distance - COVER_FLOW_ONE;
         int32_t scale = depth_scale(layout->side_shrink, beyond);
         offset = layout->side_offset + (int)(layout->side_spacing * beyond / COVER_FLOW_ONE);
-        width = lerp(0, layout->side_width, scale);
+        near_w = lerp(0, layout->side_width, scale);
+        far_w = lerp(0, far_target, scale);
         height = lerp(0, layout->side_height, scale);
     }
     int middle = layout->center_top + layout->center_size / 2 + (relative > 0 ? offset : -offset);
     int top = middle - height / 2;
+    int top_w = relative < 0 ? far_w : near_w;
+    int bottom_w = relative < 0 ? near_w : far_w;
     return (Quad){
-        .left = layout->center_x - width / 2,
-        .width = width,
+        .left = layout->center_x,
+        .width = -height,
         .left_top = top,
-        .left_height = height,
-        .right_top = top,
+        .left_height = top_w,
+        .right_top = bottom_w,
         .right_height = height,
     };
 }

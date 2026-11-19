@@ -32,6 +32,11 @@ bool sim_power_off_requested(void)
     return power.off_requested;
 }
 
+void sim_power_clear_off_requested(void)
+{
+    power.off_requested = false;
+}
+
 HalBattery hal_power_battery(void)
 {
     return power.battery;
