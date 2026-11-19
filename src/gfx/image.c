@@ -51,30 +51,18 @@ typedef struct Sampler {
     uint32_t step;
 } Sampler;
 
-static Sampler sampler_at(const Column *column, const Image *image, Quad quad, int skip)
+static Sampler sampler_at(const Column *column, const Image *image, int quad_width, int skip)
 {
     uint32_t height = (uint32_t)column->height;
     uint32_t step = (((uint32_t)image->height << STEP_SHIFT) + height - 1) / height;
-    int u_col = column->offset * image->width / quad.width;
-    if (quad.left_height != quad.right_height && column->height > 0) {
-        int64_t num = (int64_t)column->offset * quad.right_height * image->width;
-        int64_t den = (int64_t)quad.width * column->height;
-        u_col = (int)(num / den);
-        if (u_col < 0) {
-            u_col = 0;
-        }
-        if (u_col >= image->width) {
-            u_col = image->width - 1;
-        }
-    }
     return (Sampler){
-        .column = &image->pixels[u_col],
+        .column = &image->pixels[column->offset * image->width / quad_width],
         .position = step * (uint32_t)skip,
         .step = step,
     };
 }
 
-static void draw_column(Canvas *canvas, Column column, const Image *image, Quad quad)
+static void draw_column(Canvas *canvas, Column column, const Image *image, int quad_width)
 {
     Rect clip = canvas->clip;
     int first = max_of(column.top, clip.y);
@@ -84,7 +72,7 @@ static void draw_column(Canvas *canvas, Column column, const Image *image, Quad 
     }
     int stride = canvas->bounds.width;
     int width = image->width;
-    Sampler sampler = sampler_at(&column, image, quad, first - column.top);
+    Sampler sampler = sampler_at(&column, image, quad_width, first - column.top);
     Color *target = pixel_address(canvas, column.x, first);
     for (int count = last - first; count > 0; count--) {
         *target = sampler.column[(int)(sampler.position >> STEP_SHIFT) * width];
@@ -98,7 +86,7 @@ static unsigned light_at(QuadLight light, Column column, int quad_width)
     return (unsigned)interpolate(light.left, light.right, column.offset, quad_width);
 }
 
-static void draw_lit_column(Canvas *canvas, Column column, const Image *image, Quad quad,
+static void draw_lit_column(Canvas *canvas, Column column, const Image *image, int quad_width,
                             unsigned light)
 {
     Rect clip = canvas->clip;
@@ -109,7 +97,7 @@ static void draw_lit_column(Canvas *canvas, Column column, const Image *image, Q
     }
     int stride = canvas->bounds.width;
     int width = image->width;
-    Sampler sampler = sampler_at(&column, image, quad, first - column.top);
+    Sampler sampler = sampler_at(&column, image, quad_width, first - column.top);
     Color *target = pixel_address(canvas, column.x, first);
     for (int count = last - first; count > 0; count--) {
         *target = color_scale(sampler.column[(int)(sampler.position >> STEP_SHIFT) * width], light);
@@ -118,7 +106,7 @@ static void draw_lit_column(Canvas *canvas, Column column, const Image *image, Q
     }
 }
 
-static void draw_reflected_column(Canvas *canvas, Column column, const Image *image, Quad quad,
+static void draw_reflected_column(Canvas *canvas, Column column, const Image *image, int quad_width,
                                   unsigned light, int rows)
 {
     Rect clip = canvas->clip;
@@ -132,7 +120,7 @@ static void draw_reflected_column(Canvas *canvas, Column column, const Image *im
     int stride = canvas->bounds.width;
     int width = image->width;
     int last_row = image->height - 1;
-    Sampler sampler = sampler_at(&column, image, quad, skip);
+    Sampler sampler = sampler_at(&column, image, quad_width, skip);
     uint32_t fade_step = ((uint32_t)light << COLOR_LIGHT_SHIFT) / (uint32_t)rows;
     uint32_t faded = ((uint32_t)light << COLOR_LIGHT_SHIFT) - fade_step * (uint32_t)skip;
     Color *target = pixel_address(canvas, column.x, first);
@@ -390,7 +378,7 @@ void image_draw_quad(Canvas *canvas, Image image, Quad quad)
     for (int x = first; x < last; x++) {
         Column column = column_at(quad, x);
         if (column.height > 0) {
-            draw_column(canvas, column, &image, quad);
+            draw_column(canvas, column, &image, quad.width);
         }
     }
 }
@@ -409,7 +397,7 @@ void image_draw_quad_lit(Canvas *canvas, Image image, Quad quad, QuadLight light
     for (int x = first; x < last; x++) {
         Column column = column_at(quad, x);
         if (column.height > 0) {
-            draw_lit_column(canvas, column, &image, quad,
+            draw_lit_column(canvas, column, &image, quad.width,
                             light_at(light, column, quad.width));
         }
     }
@@ -426,7 +414,7 @@ void image_draw_reflection(Canvas *canvas, Image image, Quad quad, QuadLight lig
     for (int x = first; x < last; x++) {
         Column column = column_at(quad, x);
         if (column.height > 0) {
-            draw_reflected_column(canvas, column, &image, quad,
+            draw_reflected_column(canvas, column, &image, quad.width,
                                   light_at(light, column, quad.width), rows);
         }
     }
